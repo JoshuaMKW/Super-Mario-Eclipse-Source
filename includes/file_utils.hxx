@@ -3,6 +3,10 @@
 const char* getStageName(TApplication* gpApplication) {
 
     AreaEpisodeArray* AreaPathArray = gpApplication->mStringPaths;
+
+    if (!AreaPathArray)
+        return nullptr;
+
     u32* AreaArrayStart = AreaPathArray->startArray;
 
     if (!AreaArrayStart || (((u32)AreaPathArray->endArray - (u32)AreaArrayStart) >> 2) < gpApplication->mAreaID)
@@ -38,7 +42,7 @@ SMEFile* loadFile(const char* stringPath) {
 
     u32* loadAddress;
     if (sme_file->FileHeader.mLoadAddress == nullptr) {
-        loadAddress = (u32*)(malloc(((sizeof(SMEFile) + 31) & ~(31)) + 32) + 31 & ~(31)); //Create an allocation
+        loadAddress = (u32*)(malloc(((sizeof(SMEFile) + 31) & ~(31)) + 32, 32) + 31 & ~(31)); //Create an allocation
     } else {
         loadAddress = sme_file->FileHeader.mLoadAddress;
     }

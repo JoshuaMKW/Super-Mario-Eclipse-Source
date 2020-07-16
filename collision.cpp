@@ -223,8 +223,9 @@ u16 checkIsRestoreTypeNoFallDamage(TBGCheckData* floor) {
 
 //0x80004A98
 void checkIsCannonType(TMario* gpMario) {
-    if (gpMario->mController->Buttons.mDPadUp == false)
+    if (gpMario->mController->Buttons.mDPadUp == false || gpMario->CollisionFlags.mIsFaceUsed == false)
         return;
+
     if ((gpMario->mFloorTriangle->mCollisionType & 0x7FFF) == 16080 || (gpMario->mFloorTriangle->mCollisionType & 0x7FFF) == 17080) {
         changePlayerStatus__6TMarioFUlUlb(gpMario, STATE_TRIPLE_J, 0, 0);
         gpMario->mForwardSpeed = (u8)(gpMario->mFloorTriangle->mValue4 >> 8);
@@ -232,6 +233,7 @@ void checkIsCannonType(TMario* gpMario) {
         gpMario->mSpeed.y = (u8)gpMario->mFloorTriangle->mValue4;
         gpMario->CollisionFlags.mIsDisableInput = true;
         gpMario->mController->State.mReadInput = false;
+        gpMario->CollisionFlags.mIsFaceUsed = true;
     }
 }
 
@@ -251,6 +253,7 @@ void changeNozzleType(TMario* gpMario, u16 type) {
     else nozzle = type - 16090;
 
     changeNozzle__9TWaterGunFQ29TWaterGun11TNozzleTypeb(gpMario->mFludd, nozzle, 1);
+    gpMario->CollisionFlags.mIsFaceUsed = true;
 }
 
 //0x80004AA0

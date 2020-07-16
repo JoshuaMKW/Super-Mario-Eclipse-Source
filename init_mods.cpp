@@ -3,9 +3,19 @@
 //0x803A428A
 //.asciz "chr%d.arc"
 
-//0x802A6C4C
-void initMarioBoot(u32* memArchive, u32* marioDataArray, u8 unk_1, u8 unk_2) {
+//0x802A750C
+u32* createPrivateHeap(u32* newHeap, u32 size, u32* rootHeap, u32 unk_1) {
+    gInfo.mJKRHeap = (u32*)create__10JKRExpHeapFUlP7JKRHeapb(0x1C0000, *(u32*)JKRRootHeap, 0);
+    u32* gameHeap = (u32*)create__10JKRExpHeapFPvUlP7JKRHeapb(newHeap, size - 0x1C0000, rootHeap, unk_1);
+    return (u32*)gameHeap;
+}
+
+//0x802A7140
+u32 setupMarioDatas(char* filepath) {
     TMarioGamePad* gpGamePad = (TMarioGamePad*)0x8057738C;
+    TApplication* gpApplication = (TApplication*)TApplicationInstance;
+    u32* marioDataField = (u32*)ARCBufferMario;
+    
     u32 id = 0;
     if (*(u32*)&gpGamePad->Buttons == PRESS_Z) {
         id = 1;
@@ -14,50 +24,20 @@ void initMarioBoot(u32* memArchive, u32* marioDataArray, u8 unk_1, u8 unk_2) {
     } else if (*(u32*)&gpGamePad->Buttons == PRESS_L){
         id = 3;
     }
-    __ct__13JKRMemArchiveFPvUl15JKRMemBreakFlag(memArchive, marioDataArray[id], unk_1, unk_2);
+
+    sprintf(filepath, filepath, id);
+
+    return DVDConvertPathToEntrynum(filepath);
 }
 
-//0x802A716C
-u32* setupMarioDatas(char* filepath, u8 unk_1, u8 unk_2, u8 expandSwitch,
-                      u32* JKRHeap, u8 JKRDvdRipper, u8 allocDirection, u8 unk_3) {
-
-    char buffer[0x10];
-    u32* marioDataArray = (u32*)0x80004FD0;
-
-    for (u32 i = 0; i < 8; ++i) {
-        sprintf(buffer, filepath, i);
-
-        if (DVDConvertPathToEntrynum(buffer) == -1)
-            break;
-
-        u32* marioData = (u32*)loadToMainRAM__12JKRDvdRipperFPCcPUc15JKRExpandSwitchUlP7JKRHeapQ212JKRDvdRipper15EAllocDirectionUlPi(buffer, unk_1, unk_2,
-                                                                                                                                     expandSwitch, JKRHeap,
-                                                                                                                                     JKRDvdRipper, allocDirection, unk_3);
-        if (marioData == nullptr)
-            break;
-
-        marioDataArray[i] = (u32)marioData;
-    }
-    return marioDataArray;
+//0x802A714C
+u32* getPrivateHeap() {
+    return gInfo.mJKRHeap;
 }
 
 //kWrite32(0x802A7148, 0x60000000);
 
-//0x802B7720
-void switchChrSZS(TFlagManager* gpFlagManager) {
-    resetStage__12TFlagManagerFv(gpFlagManager);
-
-    if (!gInfo.mFile || gInfo.mFile->FileHeader.mPlayerID == 0xFF)
-        return;
-
-    u32* marioVolumeData = (u32*)getVolume__13JKRFileLoaderFPCc("mario");
-    u32* marioDataArray = (u32*)*(u32*)ARCBufferMario;
-
-    __dt__13JKRMemArchiveFv(marioVolumeData);
-    __ct__13JKRMemArchiveFPvUl15JKRMemBreakFlag(marioVolumeData, marioDataArray[gInfo.mFile->FileHeader.mPlayerID], 0, 0);
-}
-
-//0x802998B4
+//0x802A664C
 void initFileMods() {
 
     if (gInfo.mFile) {
@@ -90,8 +70,35 @@ void initFileMods() {
         folder[16] = NULL;
         file = loadFile(parseExtension(folder, stage, true));
     }
+
     gInfo.mFile = file;
+    
+    if (!gInfo.mFile || gInfo.mFile->FileHeader.mPlayerID == 0xFF)
+        return;
+
+    char buffer[0x10];
+
+    strcpy(buffer, "/data/chr%d.arc");
+    strcpy(strstr(buffer, ".arc"), ".szs");
+    sprintf(buffer, buffer, gInfo.mFile->FileHeader.mPlayerID);
+
+    u32* marioVolumeData = (u32*)getVolume__13JKRFileLoaderFPCc("mario");
+
+    if (DVDConvertPathToEntrynum(buffer) == -1)
+        return;
+
+    free(*(u32*)ARCBufferMario);
+
+    u32* marioData = (u32*)loadToMainRAM__12JKRDvdRipperFPCcPUc15JKRExpandSwitchUlP7JKRHeapQ212JKRDvdRipper15EAllocDirectionUlPi(buffer, 0, 1, 0, gInfo.mJKRHeap, 1, 0, 0);
+    u32* marioDataField = (u32*)ARCBufferMario;
+
+    *marioDataField = (u32)marioData;
+
+    __dt__13JKRMemArchiveFv(marioVolumeData);
+    __ct__13JKRMemArchiveFPvUl15JKRMemBreakFlag(marioVolumeData, *marioDataField, 0, 0);
+
     asm("mr 3, 26");
+    return;
 }
 
 //0x80280180
@@ -194,54 +201,64 @@ lwz r30, 0x38 (sp)
 void initMario(TMario* gpMario) {
     SMEFile* file = gInfo.mFile;
 
-    if (!file)
-        return;
+    gpMario->mMaxJumps = 1;
+    gpMario->mPlayerID = gInfo.PlayerData.mCurPlayerID[0];
+    gpMario->mCanRideYoshi = true;
+    gpMario->mCanHaveFludd = true;
 
-    
-    gpMario->mPlayerID = file->FileHeader.mPlayerID;
-    gInfo.PlayerData.mCurPlayerID[0] = file->FileHeader.mPlayerID;
+    if (file) {
+        gpMario->mPlayerID = file->FileHeader.mPlayerID;
+        gInfo.PlayerData.mCurPlayerID[0] = file->FileHeader.mPlayerID;
 
-    gpMario->mBaseBounceSpeed1 = file->Mario.mBaseBounce1;
-    gpMario->mBaseBounceSpeed2 = file->Mario.mBaseBounce2;
-    gpMario->mBaseBounceSpeed3 = file->Mario.mBaseBounce3;
-    gpMario->mHealth = file->Mario.mHealth;
-    gpMario->mMaxHealth = file->Mario.mMaxHealth;
-    gpMario->mOBStep = file->Mario.mOBStep;
-    gpMario->mOBMax = file->Mario.mOBMax;
+        gpMario->mGravity = file->Mario.mGravity;
+        gpMario->mBaseBounceSpeed1 = file->Mario.mBaseBounce1;
+        gpMario->mBaseBounceSpeed2 = file->Mario.mBaseBounce2;
+        gpMario->mBaseBounceSpeed3 = file->Mario.mBaseBounce3;
+        gpMario->mMaxFallNoDamage = file->Mario.mMaxFallNoDamage;
+        gpMario->mHealth = file->Mario.mHealth;
+        gpMario->mMaxHealth = file->Mario.mMaxHealth;
+        gpMario->mOBStep = file->Mario.mOBStep;
+        gpMario->mOBMax = file->Mario.mOBMax;
 
-    gpMario->mAttributes.mGainHelmet = file->FileHeader.MarioStates.mMarioHasHelmet;
-    gpMario->mAttributes.mHasFludd = file->FileHeader.MarioStates.mMarioHasFludd;
-    gpMario->mAttributes.mIsShineShirt = file->FileHeader.MarioStates.mMarioHasShirt;
-    
-    if (file->FileHeader.MarioStates.mMarioHasGlasses) {
+        gpMario->mAttributes.mGainHelmet = file->FileHeader.MarioStates.mMarioHasHelmet;
+        gpMario->mAttributes.mHasFludd = file->FileHeader.MarioStates.mMarioHasFludd;
+        gpMario->mAttributes.mIsShineShirt = file->FileHeader.MarioStates.mMarioHasShirt;
+        
+        if (file->FileHeader.MarioStates.mMarioHasGlasses) {
+            wearGlass__6TMarioFv(gpMario);
+        }
+    }
+
+    MarioParamsFile* paramsFile = (MarioParamsFile*)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc("mario"),
+                                                                                  "/params.bin");
+
+    if (!paramsFile) return;
+
+    gpMario->mGravity *= paramsFile->Attributes.mGravityMulti;
+    gpMario->mTerminalVelocity *= paramsFile->Attributes.mGravityMulti;
+    gpMario->mMaxFallNoDamage *= paramsFile->Attributes.mMaxFallNoDamageMulti;
+    gpMario->mMaxJumps = paramsFile->Attributes.mJumpCount;
+
+    gpMario->mBaseBounceSpeed1 *= paramsFile->Attributes.mBaseBounce1Multi;
+    gpMario->mBaseBounceSpeed2 *= paramsFile->Attributes.mBaseBounce2Multi;
+    gpMario->mBaseBounceSpeed3 *= paramsFile->Attributes.mBaseBounce3Multi;
+    gpMario->mHealth = paramsFile->Attributes.mHealth;
+    gpMario->mMaxHealth = paramsFile->Attributes.mMaxHealth;
+    gpMario->mOBStep = paramsFile->Attributes.mOBStep;
+    gpMario->mOBMax = paramsFile->Attributes.mOBMax;
+
+    gpMario->mAttributes.mGainHelmet = paramsFile->Attributes.mMarioHasHelmet;
+    gpMario->mAttributes.mHasFludd = paramsFile->Attributes.mCanUseFludd;
+    gpMario->mAttributes.mIsShineShirt = paramsFile->Attributes.mMarioHasShirt;
+
+    if (paramsFile->Attributes.mMarioHasGlasses) {
         wearGlass__6TMarioFv(gpMario);
     }
 
-    switch(file->FileHeader.mPlayerID) {
-    case(1):
-        gpMario->mGravity = file->Mario.mGravity * 0.875;
-        gpMario->mTerminalVelocity *= 0.875;
-        gpMario->mMaxFallNoDamage = file->Mario.mMaxFallNoDamage;
-        *(u32*)0x80415CA8 = 0x3E800000;
-        break;
-    case(2):
-        gpMario->mGravity = file->Mario.mGravity * 0.875;
-        gpMario->mMaxFallNoDamage = file->Mario.mMaxFallNoDamage * 1.5;
-        gpMario->mAttributes.mHasFludd = false;
-        *(u32*)0x80415CA8 = 0x3EC00000;
-        break;
-    case(3):
-        gpMario->mGravity = file->Mario.mGravity;
-        gpMario->mMaxFallNoDamage = file->Mario.mMaxFallNoDamage;
-        gpMario->mAttributes.mHasFludd = false;
-        *(u32*)0x80415CA8 = 0x3E800000;
-        break;
-    default:
-        gpMario->mGravity = file->Mario.mGravity;
-        gpMario->mMaxFallNoDamage = file->Mario.mMaxFallNoDamage;
-        *(u32*)0x80415CA8 = 0x3E800000;
-        break;
-    }
+    gpMario->mCanRideYoshi = paramsFile->Attributes.mCanRideYoshi;
+
+    *(float*)0x80415CA8 *= paramsFile->Attributes.mOverallMulti;
+
 }
 
 //0x802715A0
@@ -291,136 +308,6 @@ void initCardColors() {
         gpMarDirector->mGCConsole->mWaterRightPanel.A = linearInterpolateU8(0, file->Fludd.mWaterColor.A, 0.8125);
     }
 
-}
-
-//0x80164DE4
-void newGamePlus(TFlagManager* gpFlagManager, u32* stream) {
-    TMario* gpMario = (TMario*)*(u32*)TMarioInstance;
-    load__12TFlagManagerFR20JSUMemoryInputStream(gpFlagManager, stream);
-    if (gpFlagManager->Type4Flag.mShineCount < 120 || (gpFlagManager->Type1Flag.m1Type[0xE] & 0x80) == 0) {
-        return;
-    }
-    if (gpMario->mController->Buttons.mRButton && gpMario->mController->Buttons.mLButton) {
-        gpFlagManager->Type6Flag.CustomFlags.mIsGamePlus = true;
-        //Type 1
-        memset(gpFlagManager->Type1Flag.m1Type, 0, 0x77);
-        //Type 2
-        gpFlagManager->Type2Flag.mDelfinoCoinRecord = 0;
-        gpFlagManager->Type2Flag.mBiancoCoinRecord = 0;
-        gpFlagManager->Type2Flag.mRiccoCoinRecord = 0;
-        gpFlagManager->Type2Flag.mGelatoCoinRecord = 0;
-        gpFlagManager->Type2Flag.mPinnaCoinRecord = 0;
-        gpFlagManager->Type2Flag.mSirenaCoinRecord = 0;
-        gpFlagManager->Type2Flag.mPiantaCoinRecord = 0;
-        gpFlagManager->Type2Flag.mNokiCoinRecord = 0;
-        gpFlagManager->Type2Flag.mNoki5Record = 0;
-
-        //Type 3
-        gpFlagManager->Type3Flag.mLostLifePrev = false;
-        gpFlagManager->Type3Flag.mPlazaDemoWatched = false;
-        gpFlagManager->Type3Flag.mWatchPeachKidnappedPrev = false;
-        gpFlagManager->Type3Flag.mPpdBJRBalloonsPrev = false;
-        gpFlagManager->Type3Flag.mShineGetPrev = false;
-        gpFlagManager->Type3Flag.mPlaneCrashWatched = false;
-        gpFlagManager->Type3Flag.mCourtWatched = false;
-        gpFlagManager->Type3Flag.mPeachKNAPFMVWatched = false;
-        gpFlagManager->Type3Flag.mFluddTheftViewed = false;
-
-        //Type 4
-        gpFlagManager->Type4Flag.mShineCount = 0;
-        gpFlagManager->Type4Flag.mBlueCoinCount = 0;
-        gpFlagManager->Type4Flag.mGoldCoinCount = 0;
-        gpFlagManager->Type4Flag.mSecondNozzle = TURBO_NOZZLE;
-
-        //Type 5
-        gpFlagManager->Type5Flag.mShineSpawned = false;
-        gpFlagManager->Type5Flag.mRiccoUnlockable = false;
-        gpFlagManager->Type5Flag.mGelatoUnlockable = false;
-        gpFlagManager->Type5Flag.mSunflowersRescue = false;
-        gpFlagManager->Type5Flag.mNokiAvailable = false;
-        gpFlagManager->Type5Flag.mPiantismoRaceComplete = false;
-        gpFlagManager->Type5Flag.mMantaSpawned = false;
-        gpFlagManager->Type5Flag.mHotelRising = false;
-        gpFlagManager->Type5Flag.mRedCoinSwitchPressed = false;
-        gpFlagManager->Type5Flag.mMechaBowserDefeated = false;
-        gpFlagManager->Type5Flag.mWigglerFalling = false;
-        gpFlagManager->Type5Flag.mMoleDefeated = false;
-
-        //Type 6
-        gpFlagManager->Type6Flag.mRedCoinCount = 0;
-        gpFlagManager->Type6Flag.mShadowMarioEvent = 0;
-    }
-}
-
-//GPlus health
-//0x80243838
-/*
-lis r5, 0x8041
-lwz r5, -0x1EA0(r5)
-lwz r5, 0x27C(r5)
-rlwinm r5,r5,1,31,31
-slw r4, r4, r5
-mr r31, r4
-*/
-
-//Force no hover
-//0x8026A180
-/*
-lis r6, 0x8041
-lwz r6, -0x1EA0(r6)
-lwz r6, 0x27C(r6)
-andis. r6, r6, 0x8000
-beq+ pass
-cmpwi r4, 4
-bne+ pass
-li r4, 5
-pass:
-mr. r30, r4
-*/
-
-//Init with turbo
-//0x8026A3C8
-/*
-li r8, 4
-lis r7, 0x8041
-lwz r7, -0x1EA0(r7)
-lwz r7, 0x27C(r7)
-andis. r7, r7, 0x8000
-beq+ pass
-li r8, 5
-pass:
-*/
-
-
-
-//0x801BB660
-/*
-.loc_0x0:
-  lis r4, 0x8041
-  lwz r4, -0x1EA0(r4)
-  lwz r4, 0x27C(r4)
-  andis. r4, r4, 0x8000
-  beq- .loc_0x34
-  lwz r4, 0x148(r31)
-  cmplwi r4, 0x4
-  bne- .loc_0x34
-  mr r3, r31
-  lis r4, 0x801B
-  ori r4, r4, 0x738
-  mtctr r4
-  bctrl 
-
-.loc_0x34:
-  lwz r0, 0x4C(sp)
-*/
-void isGPlusNozzleBox(TNozzleBox* gpNozzleBox) {
-    TFlagManager* gpFlagManager = (TFlagManager*)*(u32*)TFlagManagerInstance;
-    if (gpFlagManager->Type6Flag.CustomFlags.mIsGamePlus == false) {
-        return;
-    }
-    if (gpNozzleBox->mNozzleToRegen == HOVER_NOZZLE) {
-        makeObjDead__11TMapObjBaseFv((TMapObjBase*)gpNozzleBox);
-    }
 }
 
 //80415CA8 = Mario speed everything

@@ -19,32 +19,37 @@ bool isYoshiEggNeedFruit(THitActor* gpFruit) {
 
 //0x801BC8B4
 u8 isYoshiEggFree(TEggYoshi* gpEgg, THitActor* gpFruit) {
-    if (gpEgg->mObjBase.mState == 14 || gpEgg->mObjBase.mState == 6)
+    TMario* gpMario = (TMario*)*(u32*)TMarioInstance;
+
+    if (gpEgg->mObjBase.mState == 14 ||
+        gpEgg->mObjBase.mState == 6 ||
+        gpMario->mCanRideYoshi == false)
         return 0;
     
     if (!gInfo.mFile || gInfo.mFile->FileHeader.mIsYoshi == false || gInfo.mFile->Yoshi.mIsEggFree == false) {
-        if (gpEgg->mWantedFruit != gpFruit->mObjectID) {
-            return 2;
-        } else {
-            return 1;
-        }
+        if (gpEgg->mWantedFruit != gpFruit->mObjectID) return 2;
+        else return 1;
     } else {
         return 1;
     }
 }
 
-//kWrite32(0x801BC8B8, 0x28030000);
-
+//0x8024D690 - Keep Fludd gone if not collected on yoshi
 /*
-kCall(0x80270824, (TMario* gpMario) {
-    if (!gInfo.mFile || gInfo.mFile->FileHeader.mIsYoshi == false ||
-        gInfo.mFile->Yoshi.mIsEggFree == false) {
-        gpMario->mHitActor->mHeldObject = nullptr;
-    } else if (isFruit(gpMario->mTakeActor.mHeldObject->mHitActor)) {
-        gpMario->mHitActor->mHeldObject = nullptr;
-    }
-});
+mr r3, r31 #TMario
+lis r4, 0x8000
+ori r4, r4, 0x4A74 #0x80004A74
+mtctr r4
+bctrl
+cmpwi r3, 0
 */
+
+//0x80004A74
+bool isYoshiMaintainFluddModel(TMario* gpMario) {
+    if (gpMario->mYoshi->mState == MOUNTED) return (gInfo.Fludd.mHadFludd & gpMario->mAttributes.mHasFludd);
+    else return gpMario->mAttributes.mHasFludd;
+}
+
 
 //0x8024F240
 void isYoshiDrown(TYoshi* gpYoshi) {
@@ -71,7 +76,29 @@ bool isYoshiDie(TMario* gpMario) {
 
 //kWrite32(0x8026F21C, 0x2C030000);
 //kWrite32(0x8026F220, 0x41820164);
-//kWrite32(0x80281100, 0x60000000);
+
+//0x80281100
+/*
+stwu sp, -0x10 (sp)
+stw r30, 0x8 (sp)
+mr r30, r4
+lis r4, 0x8000
+ori r4, r4, 0x4A6C
+mtctr r4
+mr r4, r31
+bctrl
+mr r4, r30
+lwz r30, 0x8 (sp)
+addi sp, sp, 0x10
+cmpwi r3, 0
+*/
+
+//0x80004A6C
+bool canMountYoshi(u32 marioState, TMario* gpMario) {
+    if ((marioState & STATE_WATERBORN) && gpMario->mCanRideYoshi)
+        return true;
+    else return ((marioState & STATE_AIRBORN) && gpMario->mCanRideYoshi);
+}
 
 //0x8026E810
 void fixYoshiJuiceDecrement() {
@@ -213,15 +240,17 @@ void saveNozzles(TWaterGun* gpFludd, u8 nozzle, bool normalize) {
     gInfo.Fludd.mCurrentNozzle = gpFludd->mCurrentNozzle;
     gInfo.Fludd.mSecondNozzle = gpFludd->mSecondNozzle;
     gInfo.Fludd.mCurrentWater = gpFludd->mCurrentWater;
+    gInfo.Fludd.mHadFludd = gpFludd->mMario->mAttributes.mHasFludd;
     changeNozzle__9TWaterGunFQ29TWaterGun11TNozzleTypeb(gpFludd, nozzle, normalize);
 }
 
 //0x8024EC18
 void restoreNozzles(TMario* gpMario) {
     float factor = (float)gInfo.Fludd.mCurrentWater / (float)gpMario->mFludd->mNozzleList[gInfo.Fludd.mCurrentNozzle]->mMaxWater;
-    changeNozzle__9TWaterGunFQ29TWaterGun11TNozzleTypeb(gpMario->mFludd, gInfo.Fludd.mSecondNozzle, true);
+    changeNozzle__9TWaterGunFQ29TWaterGun11TNozzleTypeb(gpMario->mFludd, gInfo.Fludd.mSecondNozzle, 1);
     normalizeNozzle__6TMarioFv(gpMario);
     gpMario->mFludd->mCurrentWater = gpMario->mFludd->mNozzleList[gpMario->mFludd->mCurrentNozzle]->mMaxWater * factor;
+    gpMario->mAttributes.mHasFludd = gInfo.Fludd.mHadFludd;
 }
 
 //kWrite32(0x8024EC2C, 0x60000000);

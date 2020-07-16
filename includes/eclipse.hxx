@@ -168,6 +168,32 @@ class SMEFile {
         } Fludd;
 };
 
+class MarioParamsFile {
+
+    public:
+
+        struct {
+            u8 mJumpCount; //0x0000
+            bool mCanRideYoshi; //0x0001
+            bool mCanUseFludd; //0x0002
+            bool mMarioHasHelmet; //0x0003
+            bool mMarioHasGlasses; //0x0004
+            bool mMarioHasShirt; //0x0005
+            u16 _01; //0x0006
+            u16 mHealth; //0x0008
+            u16 mMaxHealth; //0x000A
+            u16 mOBStep; //0x000C
+            u16 mOBMax; //0x000E
+            Vec3 SizeMultiplier; //0x0010
+            float mOverallMulti; //0x001C
+            float mGravityMulti; //0x0020
+            float mBaseBounce1Multi; //0x0024
+            float mBaseBounce2Multi; //0x0028
+            float mBaseBounce3Multi; //0x002C
+            float mMaxFallNoDamageMulti; //0x0030
+        } Attributes;
+};
+
 namespace JUTGamePad {
 
     class CButton {
@@ -214,6 +240,79 @@ namespace JUTGamePad {
             short mAngle; //0x000C
 
     };
+
+};
+
+class TCardBookmarkInfo {
+
+    public:
+        struct {
+            u32 _00[0x1C / 4]; //0x0000
+            u16 mShineCount; //0x001C
+            u16 _01; //0x001E
+        } FileData[3];
+
+};
+
+class TCardManager {
+
+    public:
+        u32 _00[0x46C / 4]; //0x0000
+        TCardBookmarkInfo* mBookMarks; //0x046C
+
+};
+
+class TOptionRumbleUnit {
+
+    public:
+        u32 _00[0x1C / 4]; //0x0000
+        u32 mAnimState; //0x001C
+        float mAnimSpeed; //0x0088
+        float mAnimFrame; //0x008C
+        s32 mXCoordA; //0x0090
+        s32 mYCoordA; //0x0094
+        s32 mXCoordB; //0x0098
+        s32 mYCoordB; //0x009C
+        float mAnimSizeFactor; //0x00A0
+
+};
+
+class TOptionSoundUnit {
+
+    public:
+        u32 _00[0x18 / 4]; //0x0000
+        u32 mAnimState; //0x0018
+
+};
+
+class TOptionSubtitleUnit {
+
+    public:
+        u32 _00[0x18 / 4]; //0x0000
+        u32 mAnimState; //0x0018
+
+};
+
+class TOptionControl {
+
+    public:
+        u32 _00[0x8 / 4]; //0x0000
+        TOptionRumbleUnit* mRumbleUnit; //0x0008
+        TOptionSoundUnit* mSoundUnit; //0x000C
+        TOptionSubtitleUnit* mSubtitleUnit; //0x0010
+        u32 mOptionIndex; //0x0014
+        bool mIsOptionChanged; //0x0018
+        bool mIsOptionSelected; //0x0019
+        
+};
+
+class TCardLoad {
+
+    public:
+        u32 _00[0x14 / 4]; //0x0000
+        u32 mState; //0x0014
+        u32 _01[0x75C / 4]; //0x0018
+        TOptionControl* mOptionControl; //0x0774
 
 };
 
@@ -335,19 +434,22 @@ class TGCConsole2 {
         bool mWaterCardRising; //0x0045
         bool mIsWaterCard; //0x0046
         u8 _02; //0x0047
-        u32 _03[0x50 / 4]; //0x0048
-        u16 _04; //0x0098
+        u16 _03; //0x0048
+        u8 _04; //0x004A
+        bool mWaterCardFalling; //0x004B
+        u32 _05[0x4C / 4]; //0x004C
+        u16 _06; //0x0098
         RGBA mWaterLeftPanel; //0x009A
         RGBA mWaterRightPanel; //0x009E
         RGBA mJuiceCardOrange; //0x00A2
         RGBA mJuiceCardPurple; //0x00A6
         RGBA mJuiceCardPink; //0x00AA
-        u16 _05; //0x00AE
-        u32 _06[0x1F0 / 4]; //0x00B0
+        u16 _07; //0x00AE
+        u32 _08[0x1F0 / 4]; //0x00B0
         u32* mWaterCardInfo; //0x02A0
-        u32 _07[0x14 / 4]; //0x02A4
+        u32 _09[0x14 / 4]; //0x02A4
         u32 mWaterCardTopHeight; //0x02B8
-        u32 _08[0x34 / 4]; //0x02BC
+        u32 _10[0x34 / 4]; //0x02BC
 };
 
 //This is not officially named, simply fits a thing I needed lul
@@ -838,7 +940,7 @@ class TMario {
         float mTRopeAirborneAccelMul; //0x1414
         u32 _31[0xE04 / 4]; //0x1418
         float mVSpeedYoshiMul; //0x221C
-        u32 _32[0x3C / 4]; //0x2220
+        u32 _32[0x4C / 4]; //0x2220
         float mFSpeedFlutterMul; //0x226C
         u32 _33[0x10 / 4]; //0x2270
         float mBSpeedFlutterMul; //0x2280
@@ -847,7 +949,8 @@ class TMario {
         u8 mMaxJumps; //0x4294
         u8 mCurJump; //0x4295
         u8 mPlayerID; //0x4296
-        u8 _35; //0x4297
+        bool mCanRideYoshi; //0x4297
+        bool mCanHaveFludd; //0x4298
 
 };
 
@@ -901,12 +1004,23 @@ class TApplication {
     public:
         u32 _00; //0x0000
         TMarDirector* mMarDirector; //0x0004
-        u32 _01; //0x0008
+        u16 _01; //0x0008
+        u8 mPrevAreaID; //0x000A
+        u8 mPrevEpisodeID; //0x000B
         u16 _02; //0x000C
         u8 mAreaID; //0x000E
         u8 mEpisodeID; //0x000F
-        u32 _03[0x20 / 4]; //0x0010
+        u16 _03; //0x0010
+        u8 mNextAreaID; //0x0012
+        u8 mNextEpisodeID; //0x0013
+        u32 _04[0xC / 4]; //0x0014
+        TMarioGamePad* mGamePad1; //0x0020
+        TMarioGamePad* mGamePad2; //0x0024
+        TMarioGamePad* mGamePad3; //0x0028
+        TMarioGamePad* mGamePad4; //0x002C
         AreaEpisodeArray* mStringPaths; //0x0030
+        u32 _05[0xC / 4]; //0x0034
+        u32* mJKRExpHeapHi; //0x0040
 
 };
 
@@ -952,7 +1066,8 @@ struct CustomInfo {
         u8 mCurrentNozzle; //0x0034
         u8 mSecondNozzle; //0x0035
         s32 mCurrentWater; //0x0036
-        u16 _00; //0x003A
+        bool mHadFludd; //0x003A
+        u8 _00; //0x003B
     } Fludd;
 
     struct {
@@ -965,6 +1080,9 @@ struct CustomInfo {
         u8 mMaxPlayerTimer; //0x005A
         bool mIsFreePlay; //0x005B
     } PlayerData;
+
+    u32* mJKRHeap; //0x005C
+    bool mIsCompletionRewards; //0x0060
 };
 
 CustomInfo gInfo;

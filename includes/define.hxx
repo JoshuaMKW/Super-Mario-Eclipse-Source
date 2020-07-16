@@ -1,7 +1,7 @@
 #include "funcs.hxx"
 
-#define malloc(size) __nw__FUl(size)
-#define free(pointer) __dl__FPv(pointer)
+#define malloc(size, alignment) __nwa__FUl(size, alignment)
+#define free(pointer) __dla__FPv(pointer)
 
 #define dcbst(_val) asm volatile("dcbst 0, %0" \
                                  :             \
@@ -42,9 +42,6 @@
 #define 	DVD_STATE_WAITING   2
 #define 	DVD_STATE_WRONG_DISK   6
 
-#define malloc(n) __nwa__FUl(n)
-#define free(n) __dla__FPv(n)
-
 #define MAX_SHINES 300
 #define NULL 0
 #define MEM1_LO (u32*)0x80000000
@@ -80,7 +77,7 @@
 #define STATE_DOJUMP	0x00000080
 #define STATE_AIRBORN	0x00000800
 #define STATE_CUTSCENE	0x00001000
-#define STATE_STUNNED	0x00002000
+#define STATE_WATERBORN	0x00002000
 
 #define STATE_RUNNING	0x04000440
 #define STATE_IDLE		0x0C400201
@@ -266,16 +263,24 @@
 #define YoshiColor 0x8039F934
 #define ShineShadowCoordinates 0x803A1C94
 #define YoshiJuiceColor 0x803DD89C
+#define TApplicationInstance 0x803E9700
 #define SVolumeList 0x804042B4
 #define StreamVolume 0x8040C1C0
 #define CPolarSubCameraInstance 0x8040D0A8
+#define TCardLoadInstance 0x8040DDE0
+#define GamePad1 0x8040E0D0
+#define GamePad2 0x8040E0D4
+#define GamePad3 0x8040E0D8
+#define GamePad4 0x8040E0DC
 #define TMarioInstance 0x8040E108
 #define TMarioCoordinates 0x8040E10C
 #define TWaterManagerInstance 0x8040E138
 #define TFlagManagerInstance 0x8040E160
 #define TMarDirectorInstance 0x8040E178
 #define MSoundInstance 0x8040E17C
+#define TCardManagerInstance 0x8040E184
 #define ARCBufferMario 0x8040E198
+#define GameHeapBlock 0x8040E1A4
 #define StreamID 0x8040E1F0
 #define JKRSystemHeap 0x8040E290
 #define JKRCurrentHeap 0x8040E294
