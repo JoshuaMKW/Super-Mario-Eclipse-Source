@@ -9,16 +9,16 @@ const char* getStageName(TApplication* gpApplication) {
 
     u32* AreaArrayStart = AreaPathArray->startArray;
 
-    if (!AreaArrayStart || (((u32)AreaPathArray->endArray - (u32)AreaArrayStart) >> 2) < gpApplication->mAreaID)
+    if (!AreaArrayStart || (((u32)AreaPathArray->endArray - (u32)AreaArrayStart) >> 2) < gpApplication->mCurAreaID)
         return nullptr;
 
-    AreaEpisodeArray* StagePathArray = (AreaEpisodeArray*)AreaArrayStart[gpApplication->mAreaID];
+    AreaEpisodeArray* StagePathArray = (AreaEpisodeArray*)AreaArrayStart[gpApplication->mCurAreaID];
     u32* StageArrayStart = (u32*)StagePathArray->startArray;
 
-    if (!StageArrayStart || (((u32)StagePathArray->endArray - (u32)StageArrayStart) >> 4) < gpApplication->mEpisodeID)
+    if (!StageArrayStart || (((u32)StagePathArray->endArray - (u32)StageArrayStart) >> 4) < gpApplication->mCurEpisodeID)
         return nullptr;
 
-    return (const char*)(StageArrayStart[(gpApplication->mEpisodeID << 2) + (0xC / 4)]);
+    return (const char*)(StageArrayStart[(gpApplication->mCurEpisodeID << 2) + (0xC / 4)]);
 }
 
 SMEFile* loadFile(const char* stringPath) {

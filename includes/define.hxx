@@ -122,7 +122,6 @@
 #define STATE_DEATH		0x00020467
 #define STATE_DOOR_F_O	0x00001321 // Door open fail
 #define STATE_WALL_S_L	0x04000471
-#define STATE_WALL_SLD	0x000008A7
 #define STATE_F_KNCK_H	0x000208B0 // hard knockback from front (bumping into a wall from dive)
 #define STATE_KNCK_LND	0x00020462 // Landing from front knockback
 #define STATE_KNCK_GND  0x00020466 // Front knockback while grounded
@@ -236,17 +235,37 @@
 #define PINK_YOSHI   3
 
 //#define Mario Voices
-#define VOICE_CANNON_WAIL 30911
-#define VOICE_TJUMP 30902
-#define VOICE_JUMP 30891
-#define VOICE_DIVE_OUT 30897
+#define VOICE_CANNON_WAIL           30911
+#define VOICE_TJUMP                 30902
+#define VOICE_JUMP                  30891
+#define VOICE_DIVE_OUT              30897
 
 //#define Mario Animations
-#define ANIM_IDLE 0xC3
-#define ANIM_FALL 0x4C
-#define ANIM_BOUNCE 0x50
-#define ANIM_SPINJUMP 0xF4
-#define ANIM_SHINEGET 0xCD
+#define ANIM_IDLE                   0xC3
+#define ANIM_FALL                   0x4C
+#define ANIM_BOUNCE                 0x50
+#define ANIM_SPINJUMP               0xF4
+#define ANIM_SHINEGET               0xCD
+
+//#define Mario Effcts
+#define EFFECT_SMOKE_CLOUD              0x1
+#define EFFECT_ROCKET_SPRAY_MIST        0x2
+#define EFFECT_ROCKET_SPRAY_DROPS       0x3
+#define EFFECT_BURNING_SMOKE            0x6
+#define EFFECT_GROUND_SHARP_SHOCK       0x7
+#define EFFECT_STARS                    0xC
+#define EFFECT_SPARKLE                  0xE
+#define EFFECT_WATER_RECHARGE           0xF
+#define EFFECT_GROUND_SHOCK             0x10
+#define EFFECT_GROUND_SMOKE_PLUME       0x11
+#define EFFECT_WARP_IN_BODY_PIECES      0x24
+#define EFFECT_WARP_IN_BELT_PIECES      0x25
+#define EFFECT_WARP_IN_HAT_PIECES       0x26
+#define EFFECT_WARP_IN_RED_PIECES       0x27
+#define EFFECT_WARP_IN_BLUE_PIECES      0x29
+#define EFFECT_WARP_IN_BROWN_PIECES     0x2A
+#define EFFECT_WARP_IN_FLUDD_PIECES     0x2D
+#define EFFECT_WATER_RIPPLE             0x30
 
 //#define Fludd Types
 #define SPRAY_NOZZLE        0
@@ -256,6 +275,13 @@
 #define HOVER_NOZZLE        4
 #define TURBO_NOZZLE        5
 #define SNIPER_NOZZLE       6
+
+//#define Fruit IDs
+#define FRUIT_COCONUT       0x40000390
+#define FRUIT_PAPAYA        0x40000391
+#define FRUIT_PINEAPPLE     0x40000392
+#define FRUIT_DURIAN        0x40000393
+#define FRUIT_BANANA        0x40000394
 
 //define global addresses
 #define WaterAddr 0x803DD898
@@ -267,11 +293,15 @@
 #define SVolumeList 0x804042B4
 #define StreamVolume 0x8040C1C0
 #define CPolarSubCameraInstance 0x8040D0A8
+#define TCameraShakeInstance 0x8040D0B8
 #define TCardLoadInstance 0x8040DDE0
-#define GamePad1 0x8040E0D0
-#define GamePad2 0x8040E0D4
-#define GamePad3 0x8040E0D8
-#define GamePad4 0x8040E0DC
+#define TMapInstance 0x8040DE98
+#define TMapCollisionDataInstance 0x8040DEA0
+#define TPollutionManagerInstance 0x8040DED0
+#define GamePad1Instance 0x8040E0D0
+#define GamePad2Instance 0x8040E0D4
+#define GamePad3Instance 0x8040E0D8
+#define GamePad4Instance 0x8040E0DC
 #define TMarioInstance 0x8040E108
 #define TMarioCoordinates 0x8040E10C
 #define TWaterManagerInstance 0x8040E138

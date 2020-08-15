@@ -192,3 +192,184 @@ TMario* updateMario(TMario* gpMario) {
     asm("lhz 0, 0x114 (3)");
     return gpMario;
 }
+
+//0x8024E02C
+void manageExtraJumps(TMario* gpMario) {
+    if ((gpMario->mState & STATE_AIRBORN) == false || (gpMario->mState & 0x800000) || gpMario->mYoshi->mState == MOUNTED) {
+        gpMario->mCurJump = 1;
+    } else {
+        if (gpMario->mController->FrameButtons.mAButton &
+            gpMario->mCurJump < gpMario->mMaxJumps &
+            gpMario->mState != STATE_WALLSLIDE) {
+            if ((gpMario->mMaxJumps - gpMario->mCurJump) == 1) {
+                changePlayerJumping__6TMarioFUlUl(gpMario, STATE_TRIPLE_J, 0);
+            } else if ((gpMario->mState - STATE_JUMP) > 1) {
+                changePlayerJumping__6TMarioFUlUl(gpMario, STATE_JUMP, 0);
+            } else {
+                changePlayerJumping__6TMarioFUlUl(gpMario, gpMario->mState ^ 1, 0);
+            }
+            gpMario->mCurJump += 1;
+        }
+    }
+    stateMachine__6TMarioFv(gpMario);
+}
+
+//0x802546E4, 0x802546B0, 0x80254540
+/*
+stwu sp, -0x10 (sp)
+stw r31, 0x8 (sp)
+mr r31, r4
+mr r3, r30
+fmr f3, f0
+lis r0, 0x8000
+ori r0, r0, 0x4A78
+mtctr r0
+bctrl
+mr r3, r30
+mr r4, r31
+fmr f0, f1
+lwz r31, 0x8 (sp)
+addi sp, sp, 0x10
+*/
+
+//0x80004A78
+float calcJumpPower(TMario* gpMario, float factor, float curYVelocity, float jumpPower) {
+    jumpPower *= gpMario->mBaseJumpMulti;
+    if (gpMario->mState & STATE_AIRBORN) {
+        jumpPower *= powf(gpMario->mExJumpMulti, (float)gpMario->mCurJump);
+        gpMario->mForwardSpeed *= gpMario->mExJumpFSpeedMulti;
+    }
+    return (curYVelocity * factor) + jumpPower;
+}
+
+//0x8025B8C8 - fSpeed Limit Multiplier - ground
+/*
+lis r11, TMario@ha
+lwz r11, TMario@l (r11)
+cmpw r11, r31
+bne- notMario
+lfs f2, 0x42A4 (r31)
+fmuls f31, f31, f2
+notMario:
+lfs f2, 0xB0 (r31)
+*/
+
+//0x8025B8F8 - fSpeed Multiplier - ground
+/*
+lfs f1, 0xEF4 (r31)
+lis r11, TMario@ha
+lwz r11, TMario@l (r11)
+cmpw r11, r31
+bne- notMario
+lfs f0, 0x42A4 (r31)
+fdivs f1, f1, f0
+notMario:
+*/
+
+//0x8024CC58 - fSpeed Limit Multiplier - jump
+/*
+lfs f0, -0x1048 (rtoc)
+lis r11, TMario@ha
+lwz r11, TMario@l (r11)
+cmpw r11, r31
+bne- notMario
+lfs f5, 0x42A4 (r31)
+fmuls f0, f0, f5
+notMario:
+*/
+
+//0x8024CC2C - fSpeed Multiplier - jump
+/*
+lis r11, TMario@ha
+lwz r11, TMario@l (r11)
+cmpw r11, r31
+bne- notMario
+lfs f5, 0x42A4 (r31)
+fmuls f1, f1, f5
+notMario:
+fmadds f0, f1, f2, f0
+*/
+
+//0x80272FF0 - fSpeed Multplier - swim
+/*
+lis r11, TMario@ha
+lwz r11, TMario@l (r11)
+cmpw r11, r31
+bne- notMario
+lfs f5, 0x42A4 (r31)
+fmuls f2, f2, f5
+notMario:
+fmadds f0, f2, f1, f0
+*/
+
+//0x8025C3F4 - fSpeed Multplier - slide
+/*
+lis r11, TMario@ha
+lwz r11, TMario@l (r11)
+cmpw r11, r30
+bne- notMario
+lfs f5, 0x42A4 (r30)
+fdivs f2, f2, f5
+notMario:
+fmul f0, f2, f0
+*/
+
+//0x8025BC44 - fSpeed Cap Multiplier
+/*
+lfs f1, 0x5A0 (r31)
+lis r11, TMario@ha
+lwz r11, TMario@l (r11)
+cmpw r11, r31
+bne- notMario
+lfs f2, 0x42A4 (r31)
+fmuls f1, f1, f2
+notMario:
+*/
+
+//0x8024AE80 - fSpeed Multplier - hover
+/*
+lis r11, TMario@ha
+lwz r11, TMario@l (r11)
+cmpw r11, r30
+bne- notMario
+lfs f5, 0x42A4 (r30)
+fmuls f1, f1, f5
+notMario:
+fmadds f0, f2, f1, f0
+*/
+
+//0x802558B4 - fSpeed Multplier - addvelocity
+/*
+lfs f0, -0xF1C (rtoc)
+lis r11, TMario@ha
+lwz r11, TMario@l (r11)
+cmpw r11, r3
+bne- notMario
+lfs f2, 0x42A4 (r3)
+fmuls f1, f1, f2
+notMario:
+*/
+
+//0x80259368 - fSpeed Multplier - hover
+/*
+lis r11, TMario@ha
+lwz r11, TMario@l (r11)
+cmpw r11, r31
+bne- notMario
+lfs f5, 0x42A4 (r31)
+fmuls f1, f1, f5
+notMario:
+fmadds f0, f2, f1, f0
+*/
+
+//0x8024C7C4 - fSpeed Wall Bonk Cap Multiplier
+/*
+lfs f0, 0x8E8 (r28)
+lis r11, TMario@ha
+lwz r11, TMario@l (r11)
+cmpw r11, r28
+bne- notMario
+lfs f2, 0x42A4 (r28)
+fmuls f0, f0, f2
+notMario:
+*/

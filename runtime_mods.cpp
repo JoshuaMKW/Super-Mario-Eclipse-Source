@@ -26,7 +26,7 @@
 
         if (*(bool*)0x80003ED0 == true) {
             gpMario->mState = STATE_IDLE | STATE_CUTSCENE;
-            float speedMultiplier = linearInterpolateFloat(1, 2, gpMario->mController->mRButtonAnalogFloat);
+            float speedMultiplier = linearInterpolate<float>(1, 2, gpMario->mController->mRButtonAnalogFloat);
             gpMarioCoordinates->x += ((gpMario->mController->mMainStickLeftRight * 83) * speedMultiplier);
             gpMarioCoordinates->z -= ((gpMario->mController->mMainStickUpDown * 83) * speedMultiplier);
 
@@ -86,7 +86,7 @@ bool SMS_IsExMap() {
     if (gInfo.mFile) {
         return gInfo.mFile->FileHeader.StageType.mIsExMap;
     } else {
-        return (gpApplication->mAreaID > 20 && gpApplication->mAreaID < 53);
+        return (gpApplication->mCurAreaID > 20 && gpApplication->mCurAreaID < 53);
     }
 }
 
@@ -127,7 +127,7 @@ void manageShineVanish(JGeometry::TVec3<float>* marioPos) {
     TMarDirector* gpMarDirector = (TMarDirector*)*(u32*)TMarDirectorInstance;
     TMario* gpMario = (TMario*)*(u32*)TMarioInstance;
     TShine* gpShine = gpMarDirector->mCollectedShine;
-    JDrama::TActor shineData = gpShine->mObj.mTakeActor.mHitActor.mActor;
+    JDrama::TActor shineData = gpShine->mObj.mLiveActor.mTakeActor.mHitActor.mActor;
 
     if (shineData.mSize.x - 0.01055 <= 0) {
         shineData.mSize = { 1, 1, 1 };
@@ -164,19 +164,13 @@ void restoreMario(TMarDirector* gpMarDirector, u32 curState) {
     TMario* gpMario = (TMario*)*(u32*)TMarioInstance;
     CPolarSubCamera* gpCamera = (CPolarSubCamera*)*(u32*)CPolarSubCameraInstance;
 
-    if (!gpShine || !(gpShine->mType & 0x10))
-        return;
-
-    if (!gpMarDirector->sNextState)
-        return;
+    if (!gpShine || !(gpShine->mType & 0x10)) return;
+    if (!gpMarDirector->sNextState) return;
 
     u8* curSaveCard = (u8*)(gpMarDirector->sNextState[0x118 / 4]);
 
-    if ((curState != NORMAL) || (gpMarDirector->mLastState != SAVE_CARD))
-        return;
-
-    if (gpMario->mState != 0x1302)
-        return;
+    if ((curState != NORMAL) || (gpMarDirector->mLastState != SAVE_CARD)) return;
+    if (gpMario->mState != 0x1302) return;
 
     if (curSaveCard[0x2E9] != 1) {
         if (SMS_isDivingMap__Fv() || (gpMario->mPrevState & 0x20D0) == 0x20D0) {
@@ -189,7 +183,6 @@ void restoreMario(TMarDirector* gpMarDirector, u32 curState) {
     } else {
         gpMarDirector->mGameState |= WARP_OUT;
     }
-    return;
 }
 
 //0x802995BC
@@ -268,7 +261,7 @@ bool manageLightSize() {
         if (file->Light.mDarkLevel != 255) {
             gpWaterManager->mDarkLevel = file->Light.mDarkLevel;
         } else if (gpFlagManager->Type4Flag.mShineCount < MAX_SHINES) {
-            gpWaterManager->mDarkLevel = linearInterpolateU8(30, 190, (float)gpFlagManager->Type4Flag.mShineCount / (float)MAX_SHINES);
+            gpWaterManager->mDarkLevel = linearInterpolate<u8>(30, 190, (float)gpFlagManager->Type4Flag.mShineCount / (float)MAX_SHINES);
         } else {
             if (gpWaterManager->mDarkLevel < 255) {
                 gpWaterManager->mDarkLevel += 1;

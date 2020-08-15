@@ -235,13 +235,14 @@ void checkForFreeEggCard(TEggYoshi* gpEgg) {
     bckData->mFrameRate = 11;
 }
 
-//0x80281258
-void saveNozzles(TWaterGun* gpFludd, u8 nozzle, bool normalize) {
-    gInfo.Fludd.mCurrentNozzle = gpFludd->mCurrentNozzle;
-    gInfo.Fludd.mSecondNozzle = gpFludd->mSecondNozzle;
-    gInfo.Fludd.mCurrentWater = gpFludd->mCurrentWater;
-    gInfo.Fludd.mHadFludd = gpFludd->mMario->mAttributes.mHasFludd;
-    changeNozzle__9TWaterGunFQ29TWaterGun11TNozzleTypeb(gpFludd, nozzle, normalize);
+//0x8028121C
+void saveNozzles(TYoshi* gpYoshi, TMario* gpMario) {
+    //mr r4, r31
+    gInfo.Fludd.mCurrentNozzle = gpMario->mFludd->mCurrentNozzle;
+    gInfo.Fludd.mSecondNozzle = gpMario->mFludd->mSecondNozzle;
+    gInfo.Fludd.mCurrentWater = gpMario->mFludd->mCurrentWater;
+    gInfo.Fludd.mHadFludd = gpMario->mAttributes.mHasFludd;
+    ride__6TYoshiFv(gpYoshi);
 }
 
 //0x8024EC18

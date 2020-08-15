@@ -2,10 +2,17 @@
 #include "funcs.hxx"
 #include "types.hxx"
 
+template <typename T>
 struct Vec3 {
-    float x;
-    float y;
-    float z;
+    T x;
+    T y;
+    T z;
+};
+
+struct RGB {
+    u8 R;
+    u8 G;
+    u8 B;
 };
 
 struct RGBA {
@@ -35,10 +42,49 @@ namespace JGeometry {
 
 namespace JDrama {
 
+    class TDisplay {
+    };
+
+    template <typename T>
+    class TFlagT {
+
+        public:
+            T mFlag; //0x0000
+
+    };
+
+    class TNameRef {
+
+        public:
+            void* mVTable; //0x0000
+            char* mTypeName; //0x0004
+            u16 mKeyCode; //0x0008
+
+    };
+
+    class TViewObj {
+
+        public:
+            TNameRef mNameRef; //0x0000
+            TFlagT<u16> mFlags; //0x000C
+
+    };
+
+    class TPlacement {
+
+        public:
+            TViewObj mViewObj; //0x0000
+            JGeometry::TVec3<float> mPosition; //0x0010
+            TFlagT<u16> mFlags; //0x001C
+
+    };
+
     class TCamera {
 
         public:
-            u32 _00[0x30 / 4]; //0x0000
+            u32 _00[0x10 / 4]; //0x0000
+            JGeometry::TVec3<float> mCoordinates; //0x0010
+            u32 _01[0x14 / 4]; //0x001C
 
     };
 
@@ -56,11 +102,12 @@ namespace JDrama {
     class TActor {
 
         public:
-            u32 _00[0x10 / 4]; //0x0000
+            u32* vTable; //0x0000
+            u32 _00[0xC / 4]; //0x0004
             JGeometry::TVec3<float> mCoordinates; //0x0010
             u32 _01[0x8 / 4]; //0x001C
-            Vec3 mSize; //0x0024
-            Vec3 mRotation; //0x0030
+            Vec3<float> mSize; //0x0024
+            Vec3<float> mRotation; //0x0030
             u32 _02[0x8 / 4]; //0x003C
 
     };
@@ -110,7 +157,7 @@ class SMEFile {
             u8 mPlayerID; //0x0019
             u16 _01; //0x001A
             u32 _02; //0x001C
-        } FileHeader;
+        }/*__attribute__((packed))*/ FileHeader;
         
         struct {
             JGeometry::TVec3<float> mCoordinates; //0x0020
@@ -120,7 +167,7 @@ class SMEFile {
             u8 mLayerCount; //0x0038
             u8 mDarkLevel; //0x0039
             u16 _00; //0x003A
-        } Light;
+        }/*__attribute__((packed))*/ Light;
 
         struct {
             float mSpeedMulti; //0x003C
@@ -134,7 +181,7 @@ class SMEFile {
             u16 mOBStep; //0x0058
             u16 mOBMax; //0x005A
             u32 _00; //0x005C
-        } Mario;
+        } /*__attribute__((packed))*/ Mario;
 
         struct {
             s32 mMaxJuice; //0x0060
@@ -147,30 +194,31 @@ class SMEFile {
             u16 mMaxFlutterTimer; //0x007C
             bool mYoshiHungry; //0x007E
             bool mIsEggFree; //0x007F
-        } Yoshi;
+        }/*__attribute__((packed))*/ Yoshi;
 
         struct {
-            bool mPlayMusic; //0x0080
-            u8 mMusicID; //0x0081
-            u8 mAreaID; //0x0082
-            u8 mEpisodeID; //0x0083
-            float mVolume; //0x0084
-            float mSpeed; //0x0088
-            float mPitch; //0x008C
-        } Music;
+            float mVolume; //0x0080
+            float mSpeed; //0x0084
+            float mPitch; //0x0088
+            bool mPlayMusic; //0x008C
+            u16 mMusicID; //0x008D
+            u8 mAreaID; //0x008F
+            u8 mEpisodeID; //0x0090
+        }/*__attribute__((packed))*/ Music;
 
         struct {
-            u8 mPrimaryNozzle; //0x0090
-            u8 mSecondaryNozzle; //0x0091
-            RGBA mWaterColor; //0x0092
-            bool mIsColorWater; //0x0096
-            u8 _00; //0x0097
-        } Fludd;
+            u8 mPrimaryNozzle; //0x0091
+            u8 mSecondaryNozzle; //0x0092
+            RGBA mWaterColor; //0x0093
+            bool mIsColorWater; //0x0097
+        }/*__attribute__((packed))*/ Fludd;
 };
 
 class MarioParamsFile {
 
     public:
+
+        enum FluddCleanType { NONE, CLEAN, GOOP };
 
         struct {
             u8 mJumpCount; //0x0000
@@ -184,14 +232,30 @@ class MarioParamsFile {
             u16 mMaxHealth; //0x000A
             u16 mOBStep; //0x000C
             u16 mOBMax; //0x000E
-            Vec3 SizeMultiplier; //0x0010
-            float mOverallMulti; //0x001C
-            float mGravityMulti; //0x0020
-            float mBaseBounce1Multi; //0x0024
-            float mBaseBounce2Multi; //0x0028
-            float mBaseBounce3Multi; //0x002C
-            float mMaxFallNoDamageMulti; //0x0030
-        } Attributes;
+            Vec3<float> SizeMultiplier; //0x0010
+            float mGravityMulti; //0x001C
+            float mBaseBounce1Multi; //0x0020
+            float mBaseBounce2Multi; //0x0024
+            float mBaseBounce3Multi; //0x0028
+            float mMaxFallNoDamageMulti; //0x002C
+            float mBaseJumpHeightMulti; //0x0030
+            float mMultiJumpMultiplier; //0x0034
+            float mMultiJumpFSpeedMulti; //0x0038
+            float mSpeedMultiplier; //0x003C
+
+            struct {
+                bool mCanUseNozzle[8]; //0x0040
+                RGBA mWaterColor; //0x0048
+                FluddCleanType mCleaningType; //0x004C
+                bool mBindToJointID[8]; //0x0050
+                bool mCanCleanSeals; //0x0058
+                u8 _00; //0x0059
+                u16 _01; //0x005A
+            } FluddAttrs;
+            
+        }/*__attribute__((packed))*/ Attributes;
+        
+        char mCharacterName[]; //0x005C
 };
 
 namespace JUTGamePad {
@@ -319,18 +383,78 @@ class TCardLoad {
 class J3DDrawBuffer {
 };
 
+class J3DModel {
+
+    public:
+        u32 _00[0x8 / 4]; //0x0000
+        u32* mJointList; //0x0008
+
+};
+
+class TRailNode {
+
+    public:
+        Vec3<s16> mPosition; //0x0000
+        s16 mNeighborCount; //0x0006
+        u32 _00[0xC / 4]; //0x0008
+        s16 mNeighborIDs[8]; //0x0014
+        float mNeightborDistances[8]; //0x0024
+
+};
+
+class TGraphWeb {
+
+    public:
+        u32* mNodes; //0x0000
+        TRailNode* mRailNode; //0x0004
+        s32 mNodeCount; //0x0008
+        char* mGraphName; //0x000C
+        u32 _00[0x8 / 4]; //0x0010
+        void* mVTable; //0x0018
+
+};
+
+class TGraphTracer {
+
+    public:
+        TGraphWeb* mGraph; //0x0000
+        s32 mCurrentNode; //0x0004
+        s32 mPreviousNode; //0x0008
+        float _00;
+        float _01;
+        float _02;
+
+};
+
+template <typename T>
+class TSpineBase {
+
+    public:
+        T* mTarget; //0x0000
+        u32 _00; //0x0004
+        u32 mVTableIndex; //0x0008
+        u32 _01[0x8 / 4]; //0x000C
+        void* mCurVTable; //0x0014
+        void* mVTableCopy; //0x0018
+        void* mPrevVTable; //0x001C
+        u32 mStateTimer; //0x0020
+        void* mVTable; //0x0024
+
+};
+
 class TBGCheckData {
 
     public:
         u16 mCollisionType; //0x0000
         s16 mValue4; //0x0002
-        u32 _00; //0x0004
+        u16 _00; //0x0004
+        u16 _01; //0x0006
         float mMinHeight; //0x0008
         float mMaxHeight; //0x000C
         JGeometry::TVec3<float> mVertexA; //0x0010
         JGeometry::TVec3<float> mVertexB; //0x001C
         JGeometry::TVec3<float> mVertexC; //0x0028
-        float _01[0x10 / 4];
+        float _02[0x10 / 4];
         u32* callbackVTable; //0x0044
 
 };
@@ -365,15 +489,19 @@ class TLiveActor {
 
     public:
         TTakeActor mTakeActor; //0x0000
-        u32 _00[0x24 / 4]; //0x0070
-        Vec3 mPositionalVelocity; //0x0094
-        Vec3 mRotationalVelocity; //0x00A0
-        Vec3 mSpeed; //0x00AC
+        u32 _00[0x1C / 4]; //0x0070
+        TSpineBase<TLiveActor>* mSpineBase; //0x008C
+        u32 _01; //0x0090
+        Vec3<float> mPositionalVelocity; //0x0094
+        Vec3<float> mRotationalVelocity; //0x00A0
+        Vec3<float> mSpeed; //0x00AC
         float mShadowRadius; //0x00B8
         float mMaxSpeed; //0x00BC
-        u32 _01[0xC / 4]; //0x00C0
+        float _02; //0x00C0
+        TBGCheckData* mFloorBelow; //0x00C4
+        u32 _03; //0x00C8
         float mGravity; //0x00CC
-        u32 _02[0x20 / 4]; //0x00D0
+        u32 _04[0x20 / 4]; //0x00D0
 
 };
 
@@ -402,6 +530,16 @@ class TMapObjBase {
 
 };
 
+class TSpineEnemy {
+
+    public:
+        TLiveActor mLiveActor; //0x0000
+        u32 _00[0x34 / 4]; //0x00F0
+        TGraphTracer* mGraphTracer; //0x0124
+        u32 _01[0x28 / 4]; //0x0128
+
+};
+
 class TCameraInbetween {
 
     public:
@@ -413,13 +551,156 @@ class TCameraInbetween {
 class CPolarSubCamera {
 
     public:
-        JDrama::TLookAtCamera mCamera; //0x0000
+        JDrama::TLookAtCamera mLookAtCamera; //0x0000
         u32 _00[0x1C / 4]; //0x0050
         TCameraInbetween* mInbetween; //0x006C
         u32 _01[0x34 / 4]; //0x0070
         u16 _02; //0x00A4
         u16 mHorizontalAngle; //0x00A6
         float mInterpolateDistance; //0x00A8
+
+};
+
+class TJointModel {
+
+    public:
+        u32 _00[0x30 / 4]; //0x0000
+};
+
+class TPollutionPos {
+};
+
+class TPollutionObj {
+
+    public:
+        u32 _00[0x30 / 4]; //0x0000
+        u32 mCleanedDegree; //0x0030
+        TPollutionPos mPosition; //0x005C
+
+};
+
+class TPollutionLayer {
+
+    public:
+        TJointModel mJointModel; //0x0000
+        u16 mPollutionEffect; //0x0030
+
+};
+
+class TPollutionManager {
+};
+
+class TBossManta {
+
+    public:
+        TSpineEnemy mSpineEnemy; //0x0000
+        u32 _00[0x3C / 4]; //0x0150
+        u32 mGeneration; //0x018C
+        float mSpeed; //0x0190
+        float mAngularVelocity; //0x0194
+        u32 _01; //0x0198
+        u32 mDamageCounter; //0x019C
+        u32 mInvincibilityTimer; //0x01A0
+
+};
+
+class TBGPolDrop {
+
+    public:
+
+        enum DropStatus { DEAD, ALIVE, HIT };
+
+        JDrama::TNameRef mNameRef; //0x0000
+        JDrama::TFlagT<u16> mFlags; //0x000C
+        JGeometry::TVec3<float> mCoordinates; //0x0010
+        u16 _00; //0x001C
+        u16 _01; //0x001E
+        void* mVTable; //0x0020
+        Vec3<float> _02; //0x0024
+        Vec3<float> _03; //0x0030
+        u32 _04; //0x003C
+        u32 _05; //0x0040
+        Vec3<float> mVelocity; //0x0044
+        u32 _06[0x8 / 4]; //0x0050
+        u32 mStatus; //0x0058
+
+};
+
+class TBossGesso {
+
+    public:
+        enum Attacks { SINGLE, DOUBLE, SKIPROPE, UNISON, SHOOT };
+
+        TSpineEnemy mSpineEnemy; //0x0000
+        u32 _00[0x18 / 4]; //0x0150
+        u32 mAttackState; //0x0168
+        u32 mAttackTimer; //0x016C
+        u32 _01[0x10 / 4]; //0x0170
+        TBGPolDrop* mPollutionDrop; //0x0180
+        u32 _02[0xC / 4]; //0x0184
+        u16 _03; //0x0190
+        u8 _04; //0x0192
+        u8 mGoopLevel; //0x0193
+        u16 mAttackCount; //0x0194
+        u16 _05; //0x0196
+        u32 _06[0x18 / 4]; //0x0198
+
+};
+
+class TMapCollisionGroundEntry {
+
+    public:
+        u32* mVTable; //0x0000
+        TMapCollisionGroundEntry* mNextTriangle; //0x0004
+        TBGCheckData* mColTriangle; //0x0008
+
+};
+
+class TBGArray {
+
+    public:
+        TBGCheckData mFloorTriangles[]; //0x0000
+
+};
+
+class TMapCollisionData {
+
+    public:
+        float _00; //0x0000
+        float _01; //0x0004
+        u32 _02[0x8 / 4]; //0x0008
+        u32 mUnkSize; //0x0010
+        u32 _03[0x8 / 4]; //0x0014
+        u32 mFloorArraySize; //0x001C
+        u32 _04[0x8 / 4]; //0x0020
+        TBGArray* mFloorData; //0x0028
+        TMapCollisionGroundEntry** mConnectedFloors; //0x002C ?
+        u32 _05[0x8 / 4]; //0x0030
+        u32 mCheckDataLength; //0x0038
+        u32 _06; //0x003C
+        u16 _07; //0x0040
+
+};
+
+class TMap {
+
+    public:
+        u32 _00[0x10 / 4]; //0x000C
+        TMapCollisionData* mCollisionData; //0x0010
+
+};
+
+class TSMSFader {
+
+    public:
+        u32 _00[0x18 / 4]; //0x0000
+        RGB mColor; //0x0018
+        s8 mState; //0x001B
+        bool _01; //0x001C
+        u32 mFadeStatus; //0x0020
+        u32 mStatusID; //0x0024
+        float mFadeTime; //0x0028
+        float _02; //0x002C
 
 };
 
@@ -591,6 +872,7 @@ class TMarioGamePad {
         u32 _00[0x18 / 4]; //0x0000
 
         struct {
+
             u32 _00 : 4; //0x0018
             bool mMainStickUp : 1;
             bool mMainStickDown : 1;
@@ -618,7 +900,35 @@ class TMarioGamePad {
             
         } Buttons;
 
-        u32 _01[0x8 / 4]; //0x001C
+        struct {
+            u32 _00 : 4; //0x0018
+            bool mMainStickUp : 1;
+            bool mMainStickDown : 1;
+            bool mMainStickRight : 1;
+            bool mMainStickLeft : 1;
+            u32 _01 : 4;
+            bool mCStickUp : 1;
+            bool mCStickDown : 1;
+            bool mCStickRight : 1;
+            bool mCStickLeft : 1;
+            u32 _02 : 3;
+            bool mSButton : 1;
+            bool mYButton : 1;
+            bool mXButton : 1;
+            bool mBButton : 1;
+            bool mAButton : 1;
+            u32 _03 : 1;
+            bool mLButton : 1;
+            bool mRButton : 1;
+            bool mZButton : 1;
+            bool mDPadUp : 1;
+            bool mDPadDown : 1;
+            bool mDPadRight : 1;
+            bool mDPadLeft : 1;
+            
+        } FrameButtons;
+
+        u32 _01; //0x0020
         u16 _02; //0x0024
         u8 mLButtonAnalogU8; //0x0026
         u8 mRButtonAnalogU8; //0x0027
@@ -693,14 +1003,14 @@ class TWaterGun {
     public:
         u32 _00[0x8 / 4]; //0x0000
         class TMario* mMario; //0x0008
-        TNozzleBase mSprayNozzleBase; //0x000C
-        TNozzleTrigger mSprayNozzleTrigger; //0x0390
-        TNozzleTrigger mRocketNozzle; //0x0720
-        TNozzleBase mUnderWaterNozzle; //0x0AB0
-        TNozzleBase mYoshiNozzleBase; //0x0E34
-        TNozzleTrigger mYoshiNozzleTrigger; //0x11B8
-        TNozzleTrigger mHoverNozzle; //0x1548
-        TNozzleTrigger mTurboNozzle; //0x18D8
+        TNozzleBase mNozzleDeform; //0x000C
+        TNozzleTrigger mNozzleDeformBomb; //0x0390
+        TNozzleTrigger mNozzleRocket; //0x0720
+        TNozzleBase mNozzleUnderWater; //0x0AB0
+        TNozzleBase mNozzleYoshiDeform; //0x0E34
+        TNozzleTrigger mNozzleYoshiDeformBomb; //0x11B8
+        TNozzleTrigger mNozzleHover; //0x1548
+        TNozzleTrigger mNozzleTurbo; //0x18D8
         TNozzleBase* mNozzleList[6]; //0x1C68
         s32 mCurrentWater; //0x1C80
         u8 mCurrentNozzle; //0x1C84
@@ -829,7 +1139,7 @@ class TMario {
         u16 mAngleZ; //0x0098
         u16 _03; //0x009A
         u32 _04[0x8 / 4]; //0x009C
-        Vec3 mSpeed; //0x00A4
+        Vec3<float> mSpeed; //0x00A4
         float mForwardSpeed; //0x00B0
         u32 _05[0x14 / 4]; //0x00B4
         float mTerminalVelocity; //0x00C8
@@ -906,7 +1216,15 @@ class TMario {
         u32 _14[0xC / 4]; //0x0388
         J3DDrawBuffer* mDrawBufferA; //0x0394
         J3DDrawBuffer* mDrawBufferB; //0x0398
-        u32 _14a[0x44 / 4]; //0x039C
+        u32 _14a[0xC / 4]; //0x039C
+        J3DModel* mModelData; //0x03A8
+        u32 _14b[0x18 / 4]; //0x03AC
+
+        struct {
+            u8 mBoneID[12]; //0x03C4
+        } BindToBoneArray;
+
+        u32 _14c[0x10 / 4]; //0x03D0
         TMarioCap* mCap; //0x03E0
         TWaterGun* mFludd; //0x03E4
         u32 _15[0x8 / 4]; //0x03E8
@@ -916,7 +1234,9 @@ class TMario {
         u32 _17[0x8C / 4]; //0x0500
         u16 mMaxHealth; //0x058C
         u16 _18; //0x058E
-        u32 _19[0x240 / 4]; //0x0590
+        u32 _19[0x10 / 4]; //0x0590
+        float mMaxGroundSpeed; //0x05A0
+        u32 _19a[0x22C / 4]; //0x05A4
         float mBaseBounceSpeed1; //0x07D0
         u32 _20[0x10 / 4]; //0x07D4
         float mBaseBounceSpeed2; //0x07E4
@@ -951,22 +1271,28 @@ class TMario {
         u8 mPlayerID; //0x4296
         bool mCanRideYoshi; //0x4297
         bool mCanHaveFludd; //0x4298
+        float mBaseJumpMulti; //0x429C
+        float mExJumpMulti; //0x42A0
+        float mFSpeedMultiplier; //0x42A4
+        float mExJumpFSpeedMulti; //0x42A8
+
+        struct {
+            u32 mColTimer; //0x42AC
+            bool mCollisionTypeUsed; //0x42B0
+            
+        }/*__attribute__((packed))*/ CollisionValues;
 
 };
 
 class TShine {
 
     public:
-        TLiveActor mObj; //0x0000
-        u32 _07[0xC / 4]; //0x00F0
-        u16 mPositionState; //0x00FC
-        u16 _08; //0x00FE
-        u32 _09[0x34 / 4]; //0x0100
+        TMapObjBase mObj; //0x0000
         u32 mObjectID; //0x0134
         u32 _09a[0x1C / 4]; //0x0138
         u32 mType; //0x0154
         u32 _09b[0x50 / 4]; //0x0158
-        struct Vec3 mGlowSize; //0x01A8
+        Vec3<float> mGlowSize; //0x01A8
         u8 isAlreadyObtained; //0x01B4
         u8 _10; //0x01B5
         u16 _11; //0x01B6
@@ -1008,18 +1334,20 @@ class TApplication {
         u8 mPrevAreaID; //0x000A
         u8 mPrevEpisodeID; //0x000B
         u16 _02; //0x000C
-        u8 mAreaID; //0x000E
-        u8 mEpisodeID; //0x000F
+        u8 mCurAreaID; //0x000E
+        u8 mCurEpisodeID; //0x000F
         u16 _03; //0x0010
         u8 mNextAreaID; //0x0012
         u8 mNextEpisodeID; //0x0013
-        u32 _04[0xC / 4]; //0x0014
+        u32 _04[0x8 / 4]; //0x0014
+        JDrama::TDisplay* mDisplay; //0x001C
         TMarioGamePad* mGamePad1; //0x0020
         TMarioGamePad* mGamePad2; //0x0024
         TMarioGamePad* mGamePad3; //0x0028
         TMarioGamePad* mGamePad4; //0x002C
         AreaEpisodeArray* mStringPaths; //0x0030
-        u32 _05[0xC / 4]; //0x0034
+        TSMSFader* mFader; //0x0034
+        u32 _05[0x8 / 4]; //0x0038
         u32* mJKRExpHeapHi; //0x0040
 
 };
@@ -1044,6 +1372,24 @@ struct JSUOutputStream : public JSUIosBase {
     void write(const void* source, s32 len);
 };
 
+class CollisionLink {
+
+    public:
+        TBGCheckData* mColTriangle; //0x0000
+        u8 mTargetID; //0x0004
+        u8 mThisID; //0x0005
+        u16 mPadding; //0x0006
+
+};
+
+class WarpCollisionList {
+
+    public:
+        u32 arrayLength; //0x0000
+        class CollisionLink mColList[0xFF]; //0x0004
+
+};
+
 struct CustomInfo {
     SMEFile* mFile; //0x0000
 
@@ -1052,23 +1398,24 @@ struct CustomInfo {
         bool mIsShineShadowGrowing; //0x0006
         u8 mLightType; //0x0007
         float mPrevSize; //0x0008
-        float mNextSize; //0x0010
-        JGeometry::TVec3<float> mShineShadowCoordinates; //0x0014
-        float mShineShadowBase; //0x0020
-        float mStepContext; //0x0024
-    } Light;
+        float mNextSize; //0x000C
+        JGeometry::TVec3<float> mShineShadowCoordinates; //0x0010
+        float mShineShadowBase; //0x001C
+        float mStepContext; //0x0020
+    }/*__attribute__((packed))*/ Light;
 
     struct {
-        Vec3 yoshiWaterSpeed; //0x0028
-    } Mario;
+        Vec3<float> yoshiWaterSpeed; //0x0024
+    }/*__attribute__((packed))*/ Mario;
 
     struct {
-        u8 mCurrentNozzle; //0x0034
-        u8 mSecondNozzle; //0x0035
-        s32 mCurrentWater; //0x0036
-        bool mHadFludd; //0x003A
-        u8 _00; //0x003B
-    } Fludd;
+        u8 mCurrentNozzle; //0x0030
+        u8 mSecondNozzle; //0x0031
+        u16 _00; //0x0032
+        s32 mCurrentWater; //0x0034
+        bool mHadFludd; //0x0038
+        u8 _01; //0x0039
+    }/*__attribute__((packed))*/ Fludd;
 
     struct {
         TMario* mMario[4]; //0x003C
@@ -1079,10 +1426,16 @@ struct CustomInfo {
         u8 mCurPlayerTimer[4]; //0x0056
         u8 mMaxPlayerTimer; //0x005A
         bool mIsFreePlay; //0x005B
-    } PlayerData;
+    }/*__attribute__((packed))*/ PlayerData;
 
     u32* mJKRHeap; //0x005C
     bool mIsCompletionRewards; //0x0060
+    bool mIsAudioStreaming; //0x0061
+    u16 _00; //0x0062
+    u32* mPRMFile; //0x0064
+    WarpCollisionList* mWarpColArray; //0x0068
+    MarioParamsFile* mCharacterFile; //0x006C
+
 };
 
 CustomInfo gInfo;
@@ -1090,20 +1443,31 @@ RGBA waterColor;
 RGBA juiceColor;
 RGBA yoshiColor;
 
-static inline void flushAddr(void* addr)
-{
+static inline void flushAddr(void* addr) {
     dcbf(addr);
     icbi(addr);
 }
 
-u8 linearInterpolateU8(u8 a, u8 b, float factor) {
+template <typename T>
+T linearInterpolate(T a, T b, float factor) {
     return a + factor * (b - a);
 }
 
-float linearInterpolateU32toFloat(u32 a, u32 b, float factor) {
-    return a + factor * (b - a);
+template <typename T>
+T getHAngleBetweenTwoPoints(JGeometry::TVec3<float> a, JGeometry::TVec3<float> b) {
+    return (T)atan2(b.x - a.x, b.z - a.z);
 }
 
-float linearInterpolateFloat(float a, float b, float factor) {
-    return a + factor * (b - a);
+JGeometry::TVec3<float> getTriCenter(JGeometry::TVec3<float> a, JGeometry::TVec3<float> b, JGeometry::TVec3<float> c) {
+    return { (a.x + b.x + c.x)/3, (a.y + b.y + c.y)/3, (a.z + b.z + c.z)/3 };
+}
+
+float angleToRad(float angle) {
+    return (3.14159265 / 180) * angle;
+}
+
+#define angleToRadians ((float (*)(float angle))0x80003400)
+
+u32 branchToAddr(u32* locbranch) {
+    return (u32)locbranch + (*locbranch & 0x3FFFFFC);
 }

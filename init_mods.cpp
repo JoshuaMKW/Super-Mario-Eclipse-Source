@@ -12,18 +12,15 @@ u32* createPrivateHeap(u32* newHeap, u32 size, u32* rootHeap, u32 unk_1) {
 
 //0x802A7140
 u32 setupMarioDatas(char* filepath) {
-    TMarioGamePad* gpGamePad = (TMarioGamePad*)0x8057738C;
     TApplication* gpApplication = (TApplication*)TApplicationInstance;
-    u32* marioDataField = (u32*)ARCBufferMario;
+    TMarioGamePad* gpGamePad = gpApplication->mGamePad1;
+    u32 id;
     
-    u32 id = 0;
-    if (*(u32*)&gpGamePad->Buttons == PRESS_Z) {
-        id = 1;
-    } else if (*(u32*)&gpGamePad->Buttons == PRESS_R){
-        id = 2;
-    } else if (*(u32*)&gpGamePad->Buttons == PRESS_L){
-        id = 3;
-    }
+    if (gpGamePad->Buttons.mDPadUp) id = 1;
+    else if (gpGamePad->Buttons.mDPadDown) id = 2;
+    else if (gpGamePad->Buttons.mDPadLeft) id = 3;
+    else if (gpGamePad->Buttons.mDPadRight) id = 4;
+    else id = 0;
 
     sprintf(filepath, filepath, id);
 
@@ -37,32 +34,39 @@ u32* getPrivateHeap() {
 
 //kWrite32(0x802A7148, 0x60000000);
 
-//0x802A664C
+//0x802998B4
 void initFileMods() {
+    u32* marioVolumeData = (u32*)getVolume__13JKRFileLoaderFPCc("mario");
+    u32* marioDataField;
+    u32* marioData;
+    u32* allocation;
 
+    //Init sme file
     if (gInfo.mFile) {
         free(gInfo.mFile); //Free the file allocation
     }
 
-    *(u32*)0x803DD898 = 0x3C467814; //Water rgba
-    *(u32*)0x803DD89C = 0xFEA8026E; //Yoshi Juice rgba
-    *(u32*)0x803DD8A0 = 0x9B01FD6E;
-    *(u32*)0x803DD8A4 = 0xFD62A76E;
-    *(u32*)0x8039F934 = 0x40A124FF;
-    *(u32*)0x8039F938 = 0xFF8C1CFF; //Yoshi rgba
-    *(u32*)0x8039F93C = 0xAA4CFFFF;
-    *(u32*)0x8039F940 = 0xFFA0BEFF;
-    *(u32*)0x80415CA8 = 0x3E800000; //Mario overall speed
+    RGBA* waterColor = (RGBA*)WaterAddr;
+    RGBA* juiceColor = (RGBA*)YoshiJuiceColor;
+    RGBA* yoshiColor = (RGBA*)YoshiColor;
+
+    waterColor[0] = { 0x3C, 0x46, 0x78, 0x14 }; //Water rgba
+    juiceColor[0] = { 0xFE, 0xA8, 0x02, 0x6E }; //Yoshi Juice rgba
+    juiceColor[1] = { 0x9B, 0x01, 0xFD, 0x6E };
+    juiceColor[2] = { 0xFD, 0x62, 0xA7, 0x6E };
+    juiceColor[3] = { 0x40, 0xA1, 0x24, 0xFF };
+    yoshiColor[0] = { 0xFF, 0x8C, 0x1C, 0xFF }; //Yoshi rgba
+    yoshiColor[1] = { 0xAA, 0x4C, 0xFF, 0xFF };
+    yoshiColor[2] = { 0xFF, 0xA0, 0xBE, 0xFF };
+    *(float*)0x80415CA8 = 0.25; //Mario overall speed
     *(float*)0x8040C1C0 = 0.75;
     *(float*)0x80417248 = 1;
     *(float*)0x8041731C = 1;
 
     char folder[] = "/data/scene/sme/";
-    const char* stage = getStageName((TApplication*)0x803E9700);
+    const char* stage = getStageName((TApplication*)TApplicationInstance);
 
-    if (!stage) {
-        return;
-    }
+    if (!stage) return;
 
     SMEFile* file = loadFile(parseExtension(folder, stage, false));
 
@@ -73,29 +77,52 @@ void initFileMods() {
 
     gInfo.mFile = file;
     
-    if (!gInfo.mFile || gInfo.mFile->FileHeader.mPlayerID == 0xFF)
-        return;
+    if (gInfo.mFile && gInfo.mFile->FileHeader.mPlayerID != 0xFF) {
+        //Swap Character Data
+        char buffer[0x10];
 
-    char buffer[0x10];
+        sprintf(buffer, "/data/chr%d.arc", gInfo.mFile->FileHeader.mPlayerID);
+        strcpy(strstr(buffer, ".arc"), ".szs");
 
-    strcpy(buffer, "/data/chr%d.arc");
-    strcpy(strstr(buffer, ".arc"), ".szs");
-    sprintf(buffer, buffer, gInfo.mFile->FileHeader.mPlayerID);
+        if (DVDConvertPathToEntrynum(buffer) == -1)
+            return;
 
-    u32* marioVolumeData = (u32*)getVolume__13JKRFileLoaderFPCc("mario");
+        free(*(u32*)ARCBufferMario);
 
-    if (DVDConvertPathToEntrynum(buffer) == -1)
-        return;
+        marioData = (u32*)loadToMainRAM__12JKRDvdRipperFPCcPUc15JKRExpandSwitchUlP7JKRHeapQ212JKRDvdRipper15EAllocDirectionUlPi(buffer, 0, 1, 0, gInfo.mJKRHeap, 1, 0, 0);
+        marioDataField = (u32*)ARCBufferMario;
 
-    free(*(u32*)ARCBufferMario);
+        *marioDataField = (u32)marioData;
 
-    u32* marioData = (u32*)loadToMainRAM__12JKRDvdRipperFPCcPUc15JKRExpandSwitchUlP7JKRHeapQ212JKRDvdRipper15EAllocDirectionUlPi(buffer, 0, 1, 0, gInfo.mJKRHeap, 1, 0, 0);
-    u32* marioDataField = (u32*)ARCBufferMario;
+        __dt__13JKRMemArchiveFv(marioVolumeData);
+        __ct__13JKRMemArchiveFPvUl15JKRMemBreakFlag(marioVolumeData, *marioDataField, 0, 0);
+    }
 
-    *marioDataField = (u32)marioData;
+    //Init local params.szs
+    u32* params = (u32*)getResource__10JKRArchiveFPCc(marioVolumeData, "/params.szs");
 
-    __dt__13JKRMemArchiveFv(marioVolumeData);
-    __ct__13JKRMemArchiveFPvUl15JKRMemBreakFlag(marioVolumeData, *marioDataField, 0, 0);
+    if (!params) return;
+
+    u32 filesize = getResSize__10JKRArchiveCFPCv(marioVolumeData, params);
+    u32 compressionState = checkCompressed__9JKRDecompFPUc(params);
+
+    if (compressionState == 2) {
+        *(u32*)0x8040E260 = params[0x4 / 4];
+        allocation = (u32*)alloc__7JKRHeapFUliP7JKRHeap(params[0x4 / 4], 32, *(u32*)JKRCurrentHeap);
+        decompSZS_subroutine__FPUcPUc(params, allocation);
+        gInfo.mPRMFile = allocation;
+    } else if (compressionState == 1) {
+        gInfo.mPRMFile = nullptr;
+    } else {
+        allocation = (u32*)alloc__7JKRHeapFUliP7JKRHeap(filesize, 32, *(u32*)JKRCurrentHeap);
+        memcpy(allocation, params, filesize);
+        gInfo.mPRMFile = allocation;
+    }
+
+    u32* oldparams = (u32*)getVolume__13JKRFileLoaderFPCc("param");
+
+    unmountFixed__13JKRMemArchiveFv(oldparams);
+    mountFixed__13JKRMemArchiveFPv15JKRMemBreakFlag(oldparams, gInfo.mPRMFile, 0);
 
     asm("mr 3, 26");
     return;
@@ -169,22 +196,47 @@ void initMusicTrack() {
     }
 }
 
-//0x8026AA44
-void initFludd() {
-    SMEFile* file = gInfo.mFile;
-    TMario* gpMario = (TMario*)*(u32*)TMarioInstance;
+void initFludd(TMario* gpMario) {
+    SMEFile* stagefile = gInfo.mFile;
+    MarioParamsFile* localfile = gInfo.mCharacterFile;
 
-    if (!file || file->FileHeader.mIsFludd == false) {
-        return;
+    if (stagefile && stagefile->FileHeader.mIsFludd) {
+        if (stagefile->Fludd.mIsColorWater == true) {
+            waterColor = stagefile->Fludd.mWaterColor;
+        }
+        gpMario->mFludd->mCurrentNozzle = stagefile->Fludd.mPrimaryNozzle;
+        gpMario->mFludd->mSecondNozzle = stagefile->Fludd.mSecondaryNozzle;
+
+        gpMario->mFludd->mCurrentWater = gpMario->mFludd->mNozzleList[gpMario->mFludd->mCurrentNozzle]->mMaxWater;
     }
 
-    if (file->Fludd.mIsColorWater == true) {
-        waterColor = file->Fludd.mWaterColor;
-    }
-    gpMario->mFludd->mCurrentNozzle = file->Fludd.mPrimaryNozzle;
-    gpMario->mFludd->mSecondNozzle = file->Fludd.mSecondaryNozzle;
+    if (localfile) {
+        waterColor = localfile->Attributes.FluddAttrs.mWaterColor;
+        if (!localfile->Attributes.FluddAttrs.mCanUseNozzle[gpMario->mFludd->mCurrentNozzle]) {
+            for (u8 i = 0; i < 8; ++i) {
+                if (localfile->Attributes.FluddAttrs.mCanUseNozzle[i]) {
+                    gpMario->mFludd->mCurrentNozzle = i;
+                    if (gpMario->mCanHaveFludd) gpMario->mAttributes.mHasFludd = true;
+                    gpMario->mFludd->mCurrentWater = gpMario->mFludd->mNozzleList[gpMario->mFludd->mCurrentNozzle]->mMaxWater;
+                    break;
+                } else if (i == 7) {
+                    gpMario->mAttributes.mHasFludd = false;
+                    gpMario->mCanHaveFludd = false;
+                }
+            }
+        }
 
-    gpMario->mFludd->mCurrentWater = gpMario->mFludd->mNozzleList[gpMario->mFludd->mCurrentNozzle]->mMaxWater;
+        if (!localfile->Attributes.FluddAttrs.mCanUseNozzle[gpMario->mFludd->mSecondNozzle]) {
+            for (u8 i = 0; i < 8; ++i) {
+                if (localfile->Attributes.FluddAttrs.mCanUseNozzle[i]) {
+                    gpMario->mFludd->mSecondNozzle = i;
+                    gpMario->mAttributes.mHasFludd = true;
+                    break;
+                }
+                gpMario->mFludd->mSecondNozzle = gpMario->mFludd->mCurrentNozzle;
+            }
+        }
+    }
 }
 
 //0x80276AC8
@@ -205,8 +257,12 @@ void initMario(TMario* gpMario) {
     gpMario->mPlayerID = gInfo.PlayerData.mCurPlayerID[0];
     gpMario->mCanRideYoshi = true;
     gpMario->mCanHaveFludd = true;
+    gpMario->mBaseJumpMulti = 1.0;
+    gpMario->mExJumpMulti = 1.0;
+    gpMario->mExJumpFSpeedMulti  = 1.0;
+    gpMario->mFSpeedMultiplier = 1.0;
 
-    if (file) {
+    if (file && file->FileHeader.mIsMario) {
         gpMario->mPlayerID = file->FileHeader.mPlayerID;
         gInfo.PlayerData.mCurPlayerID[0] = file->FileHeader.mPlayerID;
 
@@ -232,33 +288,40 @@ void initMario(TMario* gpMario) {
     MarioParamsFile* paramsFile = (MarioParamsFile*)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc("mario"),
                                                                                   "/params.bin");
 
-    if (!paramsFile) return;
+    gInfo.mCharacterFile = paramsFile;
+    
+    if (paramsFile) {
 
-    gpMario->mGravity *= paramsFile->Attributes.mGravityMulti;
-    gpMario->mTerminalVelocity *= paramsFile->Attributes.mGravityMulti;
-    gpMario->mMaxFallNoDamage *= paramsFile->Attributes.mMaxFallNoDamageMulti;
-    gpMario->mMaxJumps = paramsFile->Attributes.mJumpCount;
+        gpMario->mGravity *= paramsFile->Attributes.mGravityMulti;
+        gpMario->mTerminalVelocity *= paramsFile->Attributes.mGravityMulti;
+        gpMario->mMaxFallNoDamage *= paramsFile->Attributes.mMaxFallNoDamageMulti;
+        gpMario->mMaxJumps = paramsFile->Attributes.mJumpCount;
 
-    gpMario->mBaseBounceSpeed1 *= paramsFile->Attributes.mBaseBounce1Multi;
-    gpMario->mBaseBounceSpeed2 *= paramsFile->Attributes.mBaseBounce2Multi;
-    gpMario->mBaseBounceSpeed3 *= paramsFile->Attributes.mBaseBounce3Multi;
-    gpMario->mHealth = paramsFile->Attributes.mHealth;
-    gpMario->mMaxHealth = paramsFile->Attributes.mMaxHealth;
-    gpMario->mOBStep = paramsFile->Attributes.mOBStep;
-    gpMario->mOBMax = paramsFile->Attributes.mOBMax;
+        gpMario->mBaseBounceSpeed1 *= paramsFile->Attributes.mBaseBounce1Multi;
+        gpMario->mBaseBounceSpeed2 *= paramsFile->Attributes.mBaseBounce2Multi;
+        gpMario->mBaseBounceSpeed3 *= paramsFile->Attributes.mBaseBounce3Multi;
+        gpMario->mHealth = paramsFile->Attributes.mHealth;
+        gpMario->mMaxHealth = paramsFile->Attributes.mMaxHealth;
+        gpMario->mOBStep = paramsFile->Attributes.mOBStep;
+        gpMario->mOBMax = paramsFile->Attributes.mOBMax;
 
-    gpMario->mAttributes.mGainHelmet = paramsFile->Attributes.mMarioHasHelmet;
-    gpMario->mAttributes.mHasFludd = paramsFile->Attributes.mCanUseFludd;
-    gpMario->mAttributes.mIsShineShirt = paramsFile->Attributes.mMarioHasShirt;
+        gpMario->mAttributes.mGainHelmet = paramsFile->Attributes.mMarioHasHelmet;
+        gpMario->mAttributes.mHasFludd = paramsFile->Attributes.mCanUseFludd;
+        gpMario->mAttributes.mIsShineShirt = paramsFile->Attributes.mMarioHasShirt;
 
-    if (paramsFile->Attributes.mMarioHasGlasses) {
-        wearGlass__6TMarioFv(gpMario);
+        gpMario->mCanRideYoshi = paramsFile->Attributes.mCanRideYoshi;
+        gpMario->mCanHaveFludd = paramsFile->Attributes.mCanUseFludd;
+
+        gpMario->mBaseJumpMulti = paramsFile->Attributes.mBaseJumpHeightMulti;
+        gpMario->mExJumpMulti = paramsFile->Attributes.mMultiJumpMultiplier;
+        gpMario->mExJumpFSpeedMulti = paramsFile->Attributes.mMultiJumpFSpeedMulti;
+        gpMario->mFSpeedMultiplier = paramsFile->Attributes.mSpeedMultiplier;
+
+        if (paramsFile->Attributes.mMarioHasGlasses) {
+            wearGlass__6TMarioFv(gpMario);
+        }
     }
-
-    gpMario->mCanRideYoshi = paramsFile->Attributes.mCanRideYoshi;
-
-    *(float*)0x80415CA8 *= paramsFile->Attributes.mOverallMulti;
-
+    initFludd(gpMario);
 }
 
 //0x802715A0
@@ -302,12 +365,43 @@ void initCardColors() {
 
     if (file && file->FileHeader.mIsFludd == true && file->Fludd.mIsColorWater == true) {
         gpMarDirector->mGCConsole->mWaterLeftPanel = file->Fludd.mWaterColor;
-        gpMarDirector->mGCConsole->mWaterRightPanel.R = linearInterpolateU8(0, file->Fludd.mWaterColor.R, 0.8125);
-        gpMarDirector->mGCConsole->mWaterRightPanel.G = linearInterpolateU8(0, file->Fludd.mWaterColor.G, 0.8125);
-        gpMarDirector->mGCConsole->mWaterRightPanel.B = linearInterpolateU8(0, file->Fludd.mWaterColor.B, 0.8125);
-        gpMarDirector->mGCConsole->mWaterRightPanel.A = linearInterpolateU8(0, file->Fludd.mWaterColor.A, 0.8125);
+        gpMarDirector->mGCConsole->mWaterRightPanel.R = linearInterpolate<u8>(0, file->Fludd.mWaterColor.R, 0.8125);
+        gpMarDirector->mGCConsole->mWaterRightPanel.G = linearInterpolate<u8>(0, file->Fludd.mWaterColor.G, 0.8125);
+        gpMarDirector->mGCConsole->mWaterRightPanel.B = linearInterpolate<u8>(0, file->Fludd.mWaterColor.B, 0.8125);
+        gpMarDirector->mGCConsole->mWaterRightPanel.A = linearInterpolate<u8>(0, file->Fludd.mWaterColor.A, 0.8125);
     }
 
 }
 
-//80415CA8 = Mario speed everything
+/*This works by taking the target id and matching it to the
+/ ID of the first entry to have the same home ID as the target.
+/
+/ This makes a half decent linking system for the collision
+/ triangles for functionalities like linked warping!
+*/
+
+//0x802B8B20
+u32 initCollisionWarpLinks(char* name, u32* dest) {
+    TMapCollisionData* collisionMap = (TMapCollisionData*)*(u32*)TMapCollisionDataInstance;
+    WarpCollisionList* warpDataArray = (WarpCollisionList*)malloc(sizeof(WarpCollisionList), 32);
+    gInfo.mWarpColArray = warpDataArray;
+
+    if (warpDataArray == nullptr) return calcKeyCode__Q26JDrama8TNameRefFPCc(name, dest);
+
+    u32 curDataIndex = 0;
+
+    for (u32 i = 0; i < collisionMap->mFloorArraySize; ++i) {
+        if ((collisionMap->mFloorData->mFloorTriangles[i].mCollisionType & 0x7FFF) == 16040 ||
+            (collisionMap->mFloorData->mFloorTriangles[i].mCollisionType & 0x7FFF) == 17040) {
+
+            warpDataArray->mColList[curDataIndex] = { (TBGCheckData*)&collisionMap->mFloorData->mFloorTriangles[i],
+                                                      (u8)(collisionMap->mFloorData->mFloorTriangles[i].mValue4 >> 8),
+                                                      (u8)collisionMap->mFloorData->mFloorTriangles[i].mValue4 };
+            if (curDataIndex >= 0xFF) break;
+            ++curDataIndex;
+        }
+    }
+    warpDataArray->arrayLength = curDataIndex;
+
+    return calcKeyCode__Q26JDrama8TNameRefFPCc(name, dest);
+}
