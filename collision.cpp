@@ -22,6 +22,10 @@ cmplwi r4, 16040
 beq linkedWarpFunction
 cmplwi r4, 17040
 beq linkedWarpFunction
+cmplwi r4, 16041
+beq linkedWarpPreserveFunction
+cmplwi r4, 17041
+beq linkedWarpPreserveFunction
 cmplwi r4, 16080
 beq cannonFunction
 cmplwi r4, 17080
@@ -62,6 +66,11 @@ b callFunction
 linkedWarpFunction:
 lis r0, 0x8000
 ori r0, r0, 0x4AAC
+b callFunction
+
+linkedWarpPreserveFunction:
+lis r0, 0x8000
+ori r0, r0, 0x4AB0
 b callFunction
 
 callFunction:
@@ -294,9 +303,11 @@ void antiGravityCol(TMario* gpMario) {
     }
 }
 
-static inline TBGCheckData* resolveCollisionWarp(WarpCollisionList* warpDataArray, TBGCheckData* colTriangle) {
+static TBGCheckData* resolveCollisionWarp(WarpCollisionList* warpDataArray, TBGCheckData* colTriangle) {
+    if ((u8)(colTriangle->mValue4 >> 8) == 0xFF) return nullptr;
+
     for (u32 i = 0; i < warpDataArray->arrayLength; ++i) {
-        //if null break
+        if (warpDataArray->mColList[i].mThisID == 0xFF) continue;
         if (warpDataArray->mColList[i].mThisID == (u8)(colTriangle->mValue4 >> 8)) {
             return warpDataArray->mColList[i].mColTriangle;
         }
@@ -326,6 +337,8 @@ void warpToLinkedCol(TMario* gpMario) {
             gpMario->mTakeActor.mHitActor.mActor.mCoordinates = getTriCenter(linkedCol->mVertexA,
                                                                              linkedCol->mVertexB,
                                                                              linkedCol->mVertexC);
+            gpMario->mFloorTriangle = linkedCol;
+            gpMario->mFloorTriangleCopy = linkedCol;
             gpMario->mFloorBelow = gpMario->mTakeActor.mHitActor.mActor.mCoordinates.y;
             gpMario->CollisionFlags.mIsFaceUsed = true;
             gpMario->CollisionValues.mColTimer = 0;
@@ -334,9 +347,8 @@ void warpToLinkedCol(TMario* gpMario) {
             gpCamera->mLookAtCamera.mCamera.mCoordinates.x = linearInterpolate<float>(gpCamera->mLookAtCamera.mCamera.mCoordinates.x,
                                                                                       gpMario->mTakeActor.mHitActor.mActor.mCoordinates.x,
                                                                                       0.9375);
-            gpCamera->mLookAtCamera.mCamera.mCoordinates.y = linearInterpolate<float>(gpCamera->mLookAtCamera.mCamera.mCoordinates.y,
-                                                                                      gpMario->mTakeActor.mHitActor.mActor.mCoordinates.y,
-                                                                                      0.9375);
+            
+            gpCamera->mLookAtCamera.mCamera.mCoordinates.y = gpMario->mTakeActor.mHitActor.mActor.mCoordinates.y + 300;
             gpCamera->mLookAtCamera.mCamera.mCoordinates.z = linearInterpolate<float>(gpCamera->mLookAtCamera.mCamera.mCoordinates.z,
                                                                                       gpMario->mTakeActor.mHitActor.mActor.mCoordinates.z,
                                                                                       0.9375);
@@ -361,6 +373,55 @@ void warpToLinkedCol(TMario* gpMario) {
         }
     }
     gpMario->CollisionValues.mColTimer += 1;
+}
+
+void warpToLinkedColPreserve(TMario* gpMario) {
+    CPolarSubCamera* gpCamera = (CPolarSubCamera*)*(u32*)CPolarSubCameraInstance;
+    TBGCheckData* linkedCol = resolveCollisionWarp(gInfo.mWarpColPreserveArray, gpMario->mFloorTriangle);
+
+    if (linkedCol == nullptr) return;
+
+    if (gpMario->CollisionFlags.mIsFaceUsed == false) {
+        gpMario->mFloorTriangle = linkedCol;
+        gpMario->mFloorTriangleCopy = linkedCol;
+        gpMario->CollisionFlags.mIsFaceUsed = true;
+
+        gpMario->mTakeActor.mHitActor.mActor.mCoordinates = getTriCenter(linkedCol->mVertexA,
+                                                                         linkedCol->mVertexB,
+                                                                         linkedCol->mVertexC);
+
+        gpCamera->mLookAtCamera.mCamera.mCoordinates.x = linearInterpolate<float>(gpCamera->mLookAtCamera.mCamera.mCoordinates.x,
+                                                                                    gpMario->mTakeActor.mHitActor.mActor.mCoordinates.x,
+                                                                                    0.9375);
+        gpCamera->mLookAtCamera.mCamera.mCoordinates.y = gpMario->mTakeActor.mHitActor.mActor.mCoordinates.y + 300;
+        gpCamera->mLookAtCamera.mCamera.mCoordinates.z = linearInterpolate<float>(gpCamera->mLookAtCamera.mCamera.mCoordinates.z,
+                                                                                    gpMario->mTakeActor.mHitActor.mActor.mCoordinates.z,
+                                                                                    0.9375);
+        gpCamera->mHorizontalAngle = getHAngleBetweenTwoPoints<u16>(gpMario->mTakeActor.mHitActor.mActor.mCoordinates,
+                                                                    gpCamera->mLookAtCamera.mCamera.mCoordinates) * 182;
+        
+        JGeometry::TVec3<float> colNormal = Vector3D::getNormal(linkedCol->mVertexA, linkedCol->mVertexB, linkedCol->mVertexC);
+
+        float magnitude = fabsf__Ff(gpMario->mSpeed.x) + fabsf__Ff(gpMario->mSpeed.y) + fabsf__Ff(gpMario->mSpeed.z);
+
+        gpMario->mSpeed.x = magnitude * colNormal.x;
+        gpMario->mSpeed.y = magnitude * colNormal.y;
+        gpMario->mSpeed.z = magnitude * colNormal.z;
+        gpMario->mAngleY = getHAngleBetweenTwoPoints<u16>(gpMario->mTakeActor.mHitActor.mActor.mCoordinates,
+                                                          gpCamera->mLookAtCamera.mCamera.mCoordinates) * 182;
+
+        if (colNormal.y > 0) {
+            gpMario->mTakeActor.mHitActor.mActor.mCoordinates.y += 1;
+        } else if (colNormal.y < 0) {
+            gpMario->mTakeActor.mHitActor.mActor.mCoordinates.y += 40 * colNormal.y;
+        }
+        changePlayerStatus__6TMarioFUlUlb(gpMario, STATE_FALL, 0, 0);
+        
+    } else {
+        if (gpMario->mController->FrameButtons.mDPadDown) {
+            gpMario->CollisionFlags.mIsFaceUsed = false;
+        }
+    }
 }
 
 

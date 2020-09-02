@@ -1275,10 +1275,11 @@ class TMario {
         float mExJumpMulti; //0x42A0
         float mFSpeedMultiplier; //0x42A4
         float mExJumpFSpeedMulti; //0x42A8
+        u32 _35[0x154 / 4]; //0x42AC
 
         struct {
-            u32 mColTimer; //0x42AC
-            bool mCollisionTypeUsed; //0x42B0
+            u32 mColTimer; //0x4400
+            bool mCollisionTypeUsed; //0x4404
             
         }/*__attribute__((packed))*/ CollisionValues;
 
@@ -1318,10 +1319,23 @@ class TMarDirector {
         u16 _09; //0x007E
         u32 _10[0x2C / 4]; //0x0080
         u32* sNextState; //0x00AC
-        u32 _11[0x1A4 / 4]; //0x00B0
+        u32 _11; //0x00B0
+        u8 mNextState; //0x00B4
+        u32 _12[0x6C / 4]; //0x00B8
+        u8 mNextStateA; //0x0124 ?
+        u32 _13[0x12C / 4]; //0x0128
         TDemoCannon* mCannonObj; //0x0254
-        u32 _12; //0x0258
+        u32 _14; //0x0258
         TShine* mCollectedShine; //0x025C
+
+};
+
+class TGameSequence {
+
+    public:
+        u8 mAreaID;
+        u8 mEpisodeID;
+        u16 _00;
 
 };
 
@@ -1331,15 +1345,11 @@ class TApplication {
         u32 _00; //0x0000
         TMarDirector* mMarDirector; //0x0004
         u16 _01; //0x0008
-        u8 mPrevAreaID; //0x000A
-        u8 mPrevEpisodeID; //0x000B
-        u16 _02; //0x000C
-        u8 mCurAreaID; //0x000E
-        u8 mCurEpisodeID; //0x000F
-        u16 _03; //0x0010
-        u8 mNextAreaID; //0x0012
-        u8 mNextEpisodeID; //0x0013
-        u32 _04[0x8 / 4]; //0x0014
+        TGameSequence mPrevScene; //0x000A
+        TGameSequence mCurrentScene; //0x000E
+        TGameSequence mNextScene; //0x0012
+        u16 _02; //0x0016
+        u32 _03; //0x0018
         JDrama::TDisplay* mDisplay; //0x001C
         TMarioGamePad* mGamePad1; //0x0020
         TMarioGamePad* mGamePad2; //0x0024
@@ -1347,7 +1357,7 @@ class TApplication {
         TMarioGamePad* mGamePad4; //0x002C
         AreaEpisodeArray* mStringPaths; //0x0030
         TSMSFader* mFader; //0x0034
-        u32 _05[0x8 / 4]; //0x0038
+        u32 _04[0x8 / 4]; //0x0038
         u32* mJKRExpHeapHi; //0x0040
 
 };
@@ -1386,7 +1396,39 @@ class WarpCollisionList {
 
     public:
         u32 arrayLength; //0x0000
-        class CollisionLink mColList[0xFF]; //0x0004
+        CollisionLink mColList[0xFF]; //0x0004
+
+};
+
+class Vector3D {
+
+    public:
+    static float getMagnitude(JGeometry::TVec3<float> vec) {
+        return powf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z, 0.5);
+    }
+
+    static JGeometry::TVec3<float> crossProduct(JGeometry::TVec3<float> a, JGeometry::TVec3<float> b) {
+        return { (a.y * b.z) - (b.y * a.z),
+                 (a.z * b.x) - (b.z * a.x),
+                 (a.x * b.y) - (b.x * a.y) };
+    }
+
+    static JGeometry::TVec3<float> normalizeVector(JGeometry::TVec3<float> vec) {
+        float magnitude = getMagnitude(vec);
+
+        if (magnitude > 0) {
+            return { vec.x/magnitude, vec.y/magnitude, vec.z/magnitude };
+        } else {
+            return vec;
+        }
+    }
+
+    static JGeometry::TVec3<float> getNormal(JGeometry::TVec3<float> a, JGeometry::TVec3<float> b, JGeometry::TVec3<float> c) {
+        JGeometry::TVec3<float> vectorA = { a.x - b.x, a.y - b.y, a.z - b.z };
+        JGeometry::TVec3<float> vectorB = { b.x - c.x, b.y - c.y, b.z - c.z };
+        
+        return normalizeVector(crossProduct(vectorA, vectorB));
+    }
 
 };
 
@@ -1435,6 +1477,7 @@ struct CustomInfo {
     u32* mPRMFile; //0x0064
     WarpCollisionList* mWarpColArray; //0x0068
     MarioParamsFile* mCharacterFile; //0x006C
+    WarpCollisionList* mWarpColPreserveArray; //0x0070
 
 };
 
@@ -1462,11 +1505,13 @@ JGeometry::TVec3<float> getTriCenter(JGeometry::TVec3<float> a, JGeometry::TVec3
     return { (a.x + b.x + c.x)/3, (a.y + b.y + c.y)/3, (a.z + b.z + c.z)/3 };
 }
 
-float angleToRad(float angle) {
+static float angleToRad(float angle) {
     return (3.14159265 / 180) * angle;
 }
 
-#define angleToRadians ((float (*)(float angle))0x80003400)
+static float radToAngle(float rad) {
+    return (180 / 3.14159265) * rad;
+}
 
 u32 branchToAddr(u32* locbranch) {
     return (u32)locbranch + (*locbranch & 0x3FFFFFC);

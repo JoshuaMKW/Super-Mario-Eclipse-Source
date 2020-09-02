@@ -380,28 +380,35 @@ void initCardColors() {
 / triangles for functionalities like linked warping!
 */
 
-//0x802B8B20
-u32 initCollisionWarpLinks(char* name, u32* dest) {
-    TMapCollisionData* collisionMap = (TMapCollisionData*)*(u32*)TMapCollisionDataInstance;
-    WarpCollisionList* warpDataArray = (WarpCollisionList*)malloc(sizeof(WarpCollisionList), 32);
-    gInfo.mWarpColArray = warpDataArray;
-
-    if (warpDataArray == nullptr) return calcKeyCode__Q26JDrama8TNameRefFPCc(name, dest);
-
+static void parseWarpLinks(TMapCollisionData* col, WarpCollisionList* links, u32 validID) {
     u32 curDataIndex = 0;
 
-    for (u32 i = 0; i < collisionMap->mFloorArraySize; ++i) {
-        if ((collisionMap->mFloorData->mFloorTriangles[i].mCollisionType & 0x7FFF) == 16040 ||
-            (collisionMap->mFloorData->mFloorTriangles[i].mCollisionType & 0x7FFF) == 17040) {
+    for (u32 i = 0; i < col->mFloorArraySize; ++i) {
+        if ((col->mFloorData->mFloorTriangles[i].mCollisionType & 0x7FFF) == validID ||
+            (col->mFloorData->mFloorTriangles[i].mCollisionType & 0x7FFF) == validID + 1000) {
 
-            warpDataArray->mColList[curDataIndex] = { (TBGCheckData*)&collisionMap->mFloorData->mFloorTriangles[i],
-                                                      (u8)(collisionMap->mFloorData->mFloorTriangles[i].mValue4 >> 8),
-                                                      (u8)collisionMap->mFloorData->mFloorTriangles[i].mValue4 };
+            links->mColList[curDataIndex] = { (TBGCheckData*)&col->mFloorData->mFloorTriangles[i],
+                                                      (u8)(col->mFloorData->mFloorTriangles[i].mValue4 >> 8),
+                                                      (u8)col->mFloorData->mFloorTriangles[i].mValue4 };
             if (curDataIndex >= 0xFF) break;
             ++curDataIndex;
         }
     }
-    warpDataArray->arrayLength = curDataIndex;
+    links->arrayLength = curDataIndex;
+}
+
+//0x802B8B20
+u32 initCollisionWarpLinks(char* name, u32* dest) {
+    TMapCollisionData* collisionMap = (TMapCollisionData*)*(u32*)TMapCollisionDataInstance;
+    WarpCollisionList* warpDataArray = (WarpCollisionList*)malloc(sizeof(WarpCollisionList), 32);
+    WarpCollisionList* warpDataPreserveArray = (WarpCollisionList*)malloc(sizeof(WarpCollisionList), 32);
+    gInfo.mWarpColArray = warpDataArray;
+    gInfo.mWarpColPreserveArray = warpDataPreserveArray;
+
+    if (warpDataArray == nullptr) return calcKeyCode__Q26JDrama8TNameRefFPCc(name, dest);
+
+    parseWarpLinks(collisionMap, warpDataArray, 16040);
+    parseWarpLinks(collisionMap, warpDataPreserveArray, 16041);
 
     return calcKeyCode__Q26JDrama8TNameRefFPCc(name, dest);
 }

@@ -2,6 +2,8 @@
 
 #define malloc(size, alignment) __nwa__FUl(size, alignment)
 #define free(pointer) __dla__FPv(pointer)
+#define angleToRadians ((float (*)(float angle))0x80003400)
+#define radiansToAngle ((float (*)(float angle))0x8000341C)
 
 #define dcbst(_val) asm volatile("dcbst 0, %0" \
                                  :             \

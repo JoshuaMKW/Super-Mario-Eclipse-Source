@@ -219,12 +219,17 @@ void manageExtraJumps(TMario* gpMario) {
 stwu sp, -0x10 (sp)
 stw r31, 0x8 (sp)
 mr r31, r4
+lis r3, TMario@ha
+lwz r3, TMario@l (r3)
+cmpw r30, r3
+bne notMario
 mr r3, r30
 fmr f3, f0
 lis r0, 0x8000
 ori r0, r0, 0x4A78
 mtctr r0
 bctrl
+notMario:
 mr r3, r30
 mr r4, r31
 fmr f0, f1
@@ -362,7 +367,7 @@ notMario:
 fmadds f0, f2, f1, f0
 */
 
-//0x8024C7C4 - fSpeed Wall Bonk Cap Multiplier
+//0x8024C7C4 - fSpeed Wall Bonk Air Cap Multiplier
 /*
 lfs f0, 0x8E8 (r28)
 lis r11, TMario@ha
@@ -370,6 +375,18 @@ lwz r11, TMario@l (r11)
 cmpw r11, r28
 bne- notMario
 lfs f2, 0x42A4 (r28)
+fmuls f0, f0, f2
+notMario:
+*/
+
+//0x8025B14C - fSpeed Wall Bonk Ground Cap Multiplier
+/*
+lfs f0, 0x8E8 (r28)
+lis r11, TMario@ha
+lwz r11, TMario@l (r11)
+cmpw r11, r31
+bne- notMario
+lfs f2, 0x42A4 (r31)
 fmuls f0, f0, f2
 notMario:
 */
