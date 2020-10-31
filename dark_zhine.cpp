@@ -10,38 +10,48 @@ VTABLE
 .long 0x80337220, 0x80337228, 0x8033722C, 0x80337230
 .long 0x*/
 
-class TDarkZhine {
+class TDarkZhine
+{
 
-    struct ZhineFile {
-        u32* mCodeBlock[8]; //0x0000
-        u32 mBlockSize[8]; //0x0020
+    struct ZhineFile
+    {
+        u32 *mCodeBlock[8]; //0x0000
+        u32 mBlockSize[8];  //0x0020
 
-        struct {
+        struct
+        {
             JGeometry::TVec3<float> mBoundingPoint; //0x0040
-            float mBoundingAreaRadius; //0x004C
-            float mDistanceFromMario; //0x0050
-            float mSpeedMultiplier; //0x0054
-            float mAccelerationRate; //0x0058
-            float mShockRadius; //0x005C
-            float mMaxSpeed; //0x0060
-            float mStampRadius; //0x0064
-            float mRisingRate; //0x0068
-            float mMaxPoundingHeight; //0x006C
-            s16 mPoundingTimerMax; //0x0070
-            s16 mGoopingTimerMax; //0x0072
-            s16 mShockingTimerMax; //0x0074
-            s16 mRollingTimerMax; //0x0076
-            s16 mFramesToCleanOnce; //0x0078
-            u8 mGoopLevel; //0x007A
-        } /*__attribute__((packed))*/ZhineBinData;
+            float mBoundingAreaRadius;              //0x004C
+            float mDistanceFromMario;               //0x0050
+            float mSpeedMultiplier;                 //0x0054
+            float mAccelerationRate;                //0x0058
+            float mShockRadius;                     //0x005C
+            float mMaxSpeed;                        //0x0060
+            float mStampRadius;                     //0x0064
+            float mRisingRate;                      //0x0068
+            float mMaxPoundingHeight;               //0x006C
+            s16 mPoundingTimerMax;                  //0x0070
+            s16 mGoopingTimerMax;                   //0x0072
+            s16 mShockingTimerMax;                  //0x0074
+            s16 mRollingTimerMax;                   //0x0076
+            s16 mFramesToCleanOnce;                 //0x0078
+            u8 mGoopLevel;                          //0x007A
+        } /*__attribute__((packed))*/ ZhineBinData;
     };
 
-    enum PoundingState { INACTIVE = 0, DROPPING = 11, SHOCKING = 22, GROUNDROLL = 33, RISING = 44};
+    enum PoundingState
+    {
+        INACTIVE = 0,
+        DROPPING = 11,
+        SHOCKING = 22,
+        GROUNDROLL = 33,
+        RISING = 44
+    };
 
     TBossGesso mBossInfo;
     JGeometry::TVec3<float> mBoundingPoint; //0x01B0
-    float mGroundSpeed; //0x01BC
-    float mBoundingAreaRadius; //0x01C0
+    float mGroundSpeed;                     //0x01BC
+    float mBoundingAreaRadius;              //0x01C0
     float mDistanceFromMario;
     float mSpeedMultiplier;
     float mAccelerationRate;
@@ -67,13 +77,10 @@ class TDarkZhine {
     bool mIsDarkZhine;
     float mRisingRate;
     float mMaxPoundingHeight;
+    JDrama::TActor *mTarget;
 
-    public:
-
-    TDarkZhine();
-    ~TDarkZhine();
-
-    void setBoundingPoint(JGeometry::TVec3<float>* vec) { mBoundingPoint = *vec; }
+public:
+    void setBoundingPoint(JGeometry::TVec3<float> *vec) { mBoundingPoint = *vec; }
     void setGroundSpeed(float vec) { mGroundSpeed = vec; }
     void setBoundingRadius(float r) { mBoundingAreaRadius = r; }
     void setMarioDistance(float d) { mDistanceFromMario = d; }
@@ -131,27 +138,35 @@ class TDarkZhine {
     float getRisingRate() { return mRisingRate; }
     float getMaxPoundingHeight() { return mMaxPoundingHeight; }
 
-    float getAngleToTarget(JDrama::TActor* gpActor) {
+    float getAngleToTarget()
+    {
         JGeometry::TVec3<float> zhineCoordinates = mBossInfo.mSpineEnemy.mLiveActor.mTakeActor.mHitActor.mActor.mCoordinates;
 
-        return atan2(gpActor->mCoordinates.x - zhineCoordinates.x,
-                     gpActor->mCoordinates.z - zhineCoordinates.z);
+        return atan2(this->mTarget->mCoordinates.x - zhineCoordinates.x,
+                     this->mTarget->mCoordinates.z - zhineCoordinates.z);
     }
 
-    bool isTargetInRangeToHome(JGeometry::TVec3<float> home, JGeometry::TVec3<float> target, float r) {
-        return (fabsf__Ff(target.x - home.x) +
-                fabsf__Ff(target.y - home.y) +
-                fabsf__Ff(target.z - home.z) < r);
+    bool isTargetInRangeToHome(JGeometry::TVec3<float> home, float r)
+    {
+        return (fabsf__Ff(this->mTarget->mCoordinates.x - home.x) +
+                fabsf__Ff(this->mTarget->mCoordinates.y - home.y) +
+                fabsf__Ff(this->mTarget->mCoordinates.z - home.z) <
+                r);
     }
 
-    void advanceRollMovement(TPollutionManager* gpPollutionManager, TMario* gpMario, bool speedup) {
-        JDrama::TActor* zhineActor = &mBossInfo.mSpineEnemy.mLiveActor.mTakeActor.mHitActor.mActor;
+    void advanceRollMovement(TPollutionManager *gpPollutionManager)
+    {
+        JDrama::TActor *zhineActor = &mBossInfo.mSpineEnemy.mLiveActor.mTakeActor.mHitActor.mActor;
 
-        if (speedup) this->mGroundSpeed += (getAccelerationRate() * this->mSpeedMultiplier);
-        else this->mGroundSpeed -= (getAccelerationRate() * this->mSpeedMultiplier);
+        if (getRollingTimer() < getRollingTimerMax()/2)
+            this->mGroundSpeed = sigmoidCurve(getRollingTimer(), 0, getMaxSpeed()*getSpeedMultiplier(), 300, 0.04*getAccelerationRate());
+        else
+            this->mGroundSpeed = sigmoidCurve(getRollingTimer() - getRollingTimerMax()/2, 0, getMaxSpeed()*getSpeedMultiplier(), 300, -0.04*getAccelerationRate());
 
-        if (this->mGroundSpeed > this->mMaxSpeed) this->mGroundSpeed = this->mMaxSpeed;
-        else if (this->mGroundSpeed < 0) this->mGroundSpeed = 0;
+        if (this->mGroundSpeed > getMaxSpeed())
+            this->mGroundSpeed = getMaxSpeed();
+        else if (this->mGroundSpeed < 0)
+            this->mGroundSpeed = 0;
 
         zhineActor->mCoordinates.x += (this->mGroundSpeed * sinf(angleToRadians(zhineActor->mRotation.y)));
         zhineActor->mCoordinates.z += (this->mGroundSpeed * cosf(angleToRadians(zhineActor->mRotation.y)));
@@ -165,230 +180,253 @@ class TDarkZhine {
                                           (float)400);
     }
 
-    PoundingState advanceDropAttack(TPollutionManager* gpPollutionManager, TMario* gpMario) {
-        JDrama::TActor* zhineActor = &this->mBossInfo.mSpineEnemy.mLiveActor.mTakeActor.mHitActor.mActor;       
+    PoundingState advanceDropAttack(TPollutionManager *gpPollutionManager, TMario *gpMario)
+    {
+        JDrama::TActor *zhineActor = &this->mBossInfo.mSpineEnemy.mLiveActor.mTakeActor.mHitActor.mActor;
 
-        if (getPoundingStatus() == PoundingState::DROPPING) {
+        if (getPoundingStatus() == PoundingState::DROPPING)
+        {
             this->mBossInfo.mSpineEnemy.mLiveActor.mGravity = 1;
             this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.x = 0;
             this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.z = 0;
             this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.y *= this->mSpeedMultiplier;
 
             if (zhineActor->mCoordinates.y - this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMaxHeight < 10 &&
-                zhineActor->mCoordinates.y >= this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMinHeight) {
-                
-                startShake__12TCameraShakeF16EnumCamShakeModef(*(u32*)TCameraShakeInstance, 0x27, (float)1);
+                zhineActor->mCoordinates.y >= this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMinHeight)
+            {
+
+                startShake__12TCameraShakeF16EnumCamShakeModef(*(u32 *)TCameraShakeInstance, 0x27, (float)1);
                 startSoundActor__Q214MSoundSESystem8MSoundSEFUlPC3VecUlPP8JAISoundUlUc(6158, zhineActor->mCoordinates,
                                                                                        0, 0, 0, 4);
-                start__9RumbleMgrFiP3Vec(*(u32*)GamePad1Instance, 8, zhineActor->mCoordinates);
+                start__9RumbleMgrFiP3Vec(*(u32 *)GamePad1Instance, 8, zhineActor->mCoordinates);
                 stamp__17TPollutionManagerFUsffff(gpPollutionManager, 1,
                                                   zhineActor->mCoordinates.x,
                                                   this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMaxHeight,
                                                   zhineActor->mCoordinates.z,
                                                   mStampRadius);
 
-                if (this->mBossInfo.mGoopLevel > (0xFF - 0x30)) {
+                if (this->mBossInfo.mGoopLevel > (0xFF - 0x30))
+                {
                     this->mBossInfo.mGoopLevel = 0xFF;
-                } else {
+                }
+                else
+                {
                     this->mBossInfo.mGoopLevel += 0x20;
                 }
 
                 setPoundingStatus(PoundingState::SHOCKING);
                 setStatusTimer(getShockingTimerMax());
             }
-
-        } else if (getPoundingStatus() == PoundingState::SHOCKING) {
+        }
+        else if (getPoundingStatus() == PoundingState::SHOCKING)
+        {
             if (!(gpMario->mState & STATE_AIRBORN) &&
-                isTargetInRangeToHome(zhineActor->mCoordinates,
-                                      gpMario->mTakeActor.mHitActor.mActor.mCoordinates,
-                                      getShockRadius()) &&
-                (gpMario->mState != STATE_KNCK_LND && gpMario->mState != 0x4045C)) {
-                
+                isTargetInRangeToHome(zhineActor->mCoordinates, getShockRadius()) &&
+                (gpMario->mState != STATE_KNCK_LND &&
+                 gpMario->mState != 0x4045C))
+            {
                 decHP__6TMarioFi(gpMario, 1);
                 changePlayerStatus__6TMarioFUlUlb(gpMario, STATE_KNCK_LND, 0, 0);
             }
 
-            if (getStatusTimer() <= 0) {
+            if (getStatusTimer() <= 0)
+            {
                 setPoundingStatus(PoundingState::GROUNDROLL);
                 setStatusTimer(getRollingTimerMax());
             }
-
-        } else if (getPoundingStatus() == PoundingState::GROUNDROLL) {
-            if (zhineActor->mCoordinates.y - this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMaxHeight > 100) {
+        }
+        else if (getPoundingStatus() == PoundingState::GROUNDROLL)
+        {
+            if (zhineActor->mCoordinates.y - this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMaxHeight > 100)
+            {
                 setPoundingStatus(PoundingState::RISING);
                 this->mBossInfo.mSpineEnemy.mLiveActor.mGravity *= (-1 * getRisingRate() * getSpeedMultiplier());
-            } else if (getStatusTimer() > 0) {
-                advanceRollMovement(gpPollutionManager, gpMario, true);
-                if (!(getStatusTimer() % 15)) {
-                    if (this->mBossInfo.mGoopLevel == 0xFF) {
+            }
+            else if (getRollingTimer() > 0)
+            {
+                advanceRollMovement(gpPollutionManager);
+                if (!(getStatusTimer() % 15))
+                {
+                    if (this->mBossInfo.mGoopLevel == 0xFF)
+                    {
                         this->mBossInfo.mGoopLevel = 0xFF;
-                    } else {
+                    }
+                    else
+                    {
                         this->mBossInfo.mGoopLevel += 1;
                     }
-                    
-                }
-            } else {
-                advanceRollMovement(gpPollutionManager, gpMario, false);
-                if (this->mGroundSpeed < 1) {
-                    setPoundingStatus(PoundingState::RISING);
-                    zhineActor->mCoordinates.y += 1;
-                    this->mBossInfo.mSpineEnemy.mLiveActor.mGravity *= (-1 * getRisingRate() * getSpeedMultiplier());
                 }
             }
-            
-        } else if (getPoundingStatus() == PoundingState::RISING) {
+            else
+            {
+                setPoundingStatus(PoundingState::RISING);
+                zhineActor->mCoordinates.y += 1;
+                this->mBossInfo.mSpineEnemy.mLiveActor.mGravity *= (-1 * getRisingRate() * getSpeedMultiplier());
+            }
+        }
+        else if (getPoundingStatus() == PoundingState::RISING)
+        {
             float averageFloorHeight = (this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMaxHeight +
-                                        this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMinHeight) / 2;
+                                        this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMinHeight) /
+                                       2;
             this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.x = 0;
             this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.z = 0;
 
             if (zhineActor->mCoordinates.y - averageFloorHeight > 500 &&
-                zhineActor->mCoordinates.y > getBoundingPoint().y + 100) {
+                zhineActor->mCoordinates.y > getBoundingPoint().y + 100)
+            {
 
                 this->mBossInfo.mSpineEnemy.mLiveActor.mGravity *= (-1 * getRisingRate() * getSpeedMultiplier());
                 setPoundingStatus(PoundingState::INACTIVE);
             }
-
-        } else { 
+        }
+        else
+        {
             setPoundingStatus(PoundingState::INACTIVE);
         }
         setStatusTimer(getStatusTimer() - 1);
         return getPoundingStatus();
     }
 
-    void advanceGoopDroplet() {
-        JDrama::TActor* zhineActor = &this->mBossInfo.mSpineEnemy.mLiveActor.mTakeActor.mHitActor.mActor;
-        TBGPolDrop* pollutionDrop = this->mBossInfo.mPollutionDrop;
+    void advanceGoopDroplet()
+    {
+        JDrama::TActor *zhineActor = &this->mBossInfo.mSpineEnemy.mLiveActor.mTakeActor.mHitActor.mActor;
+        TBGPolDrop *pollutionDrop = this->mBossInfo.mPollutionDrop;
         Vec3<float> launchVelocity;
 
-        if (pollutionDrop->mStatus == pollutionDrop->DropStatus::DEAD) {
-            if (this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.y > 0) {
-                launchVelocity = { this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.x,
-                                   0,
-                                   this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.z };
-            } else {
-                launchVelocity = this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed;
-            }
+        if (pollutionDrop->mStatus == pollutionDrop->DropStatus::DEAD)
+        {
+            launchVelocity = {this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.x,
+                                this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.y/2,
+                                this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.z};
 
             launch__10TBGPolDropFRCQ29JGeometry8TVec3_f(this->mBossInfo.mPollutionDrop,
                                                         zhineActor->mCoordinates,
                                                         launchVelocity);
-        } else {
+        }
+        else
+        {
             move__10TBGPolDropFv(pollutionDrop);
         }
     }
- 
-    void update(TMario* gpMario) {
-        TPollutionManager* gpPollutionManager = (TPollutionManager*)*(u32*)TPollutionManagerInstance;
-        JDrama::TActor* zhineActor = &this->mBossInfo.mSpineEnemy.mLiveActor.mTakeActor.mHitActor.mActor;
+
+    void update(TMario *gpMario)
+    {
+        TPollutionManager *gpPollutionManager = (TPollutionManager *)*(u32 *)TPollutionManagerInstance;
+        JDrama::TActor *zhineActor = &this->mBossInfo.mSpineEnemy.mLiveActor.mTakeActor.mHitActor.mActor;
         float targetAngle;
 
         float averageFloorHeight = (this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMaxHeight +
-                                    this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMinHeight) / 2;
+                                    this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMinHeight)/2;
 
-        if (getIsPounding() == false) {
-            if (getIsGooping() == true) advanceGoopDroplet();
+        if (getIsPounding() == false)
+        {
+            if (getIsGooping() == true)
+                advanceGoopDroplet();
 
-            if (zhineActor->mCoordinates.y - averageFloorHeight < 700) {
-                if (zhineActor->mCoordinates.y - this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMaxHeight < 10) {
+            if (zhineActor->mCoordinates.y - averageFloorHeight < 700)
+            {
+                if (zhineActor->mCoordinates.y - this->mBossInfo.mSpineEnemy.mLiveActor.mFloorBelow->mMaxHeight < 10)
+                {
                     zhineActor->mCoordinates.y += 1;
                 }
                 this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.y = 1 * getSpeedMultiplier();
-            } else if (zhineActor->mCoordinates.y - averageFloorHeight > 700) {
-                if (zhineActor->mCoordinates.y < getBoundingPoint().y - getBoundingRadius()) {
+            }
+            else if (zhineActor->mCoordinates.y - averageFloorHeight > 700)
+            {
+                if (zhineActor->mCoordinates.y < getBoundingPoint().y - getBoundingRadius())
+                {
                     zhineActor->mCoordinates.y = getBoundingPoint().y - getBoundingRadius();
                     this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.x = 0;
-                } else {
+                }
+                else
+                {
                     this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.y = -1 * getSpeedMultiplier();
                 }
             }
         }
-        
-        if (isTargetInRangeToHome(zhineActor->mCoordinates,
-                                  gpMario->mTakeActor.mHitActor.mActor.mCoordinates,
-                                  getShockRadius()) == true &&
-                                  getIsPounding() == false) {
-            
+
+        if (isTargetInRangeToHome(zhineActor->mCoordinates, getShockRadius()) == true && getIsPounding() == false)
+        {
             setIsFollowMario(true);
             setPoundingTimer(getPoundingTimer() - 1);
             setGoopingTimer(getGoopingTimer() - 1);
             this->mBossInfo.mSpineEnemy.mLiveActor.mGravity = 0;
-        } else {
+        }
+        else
+        {
             setIsFollowMario(false);
         }
 
-        moveObject__10TLiveActorFv((TLiveActor*)this);
+        if (getPoundingStatus() == PoundingState::DROPPING || getPoundingStatus() == PoundingState::INACTIVE)
+            moveObject__10TLiveActorFv((TLiveActor *)this);
 
-        if (getIsFollowMario() == true) {
-            
-            if (getPoundingTimer() > 0) setPoundingTimer(getPoundingTimer() - 1);
-            if (getGoopingTimer() > 0) setGoopingTimer(getGoopingTimer() - 1);
+        if (getIsFollowMario() == true)
+        {
+            setPoundingTimer(getPoundingTimer() - 1);
+            setGoopingTimer(getGoopingTimer() - 1);
 
-            if (getPoundingTimer() <= 0 && zhineActor->mCoordinates.y - averageFloorHeight < getMaxPoundingHeight()) {
+            if (getPoundingTimer() <= 0 && zhineActor->mCoordinates.y - averageFloorHeight < getMaxPoundingHeight())
+            {
                 setIsPounding(true);
                 setPoundingStatus(PoundingState::DROPPING);
                 setPoundingTimer(getPoundingTimerMax());
             }
 
-            if (getGoopingTimer() <= 0) {
+            if (getGoopingTimer() <= 0)
+            {
                 setIsGooping(true);
                 setGoopingTimer(getGoopingTimerMax());
             }
 
             this->mGroundSpeed += (getAccelerationRate() * this->mSpeedMultiplier);
-            if (this->mGroundSpeed > this->mMaxSpeed) this->mGroundSpeed = this->mMaxSpeed;
+            if (this->mGroundSpeed > this->mMaxSpeed)
+                this->mGroundSpeed = this->mMaxSpeed;
 
             this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.x = this->mGroundSpeed * sinf(angleToRadians(zhineActor->mRotation.y));
             this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.z = this->mGroundSpeed * cosf(angleToRadians(zhineActor->mRotation.y));
-        
-        } else if (isTargetInRangeToHome(zhineActor->mCoordinates,
-                                         gpMario->mTakeActor.mHitActor.mActor.mCoordinates,
-                                         getShockRadius()) &&
-                                         getPoundingStatus() != PoundingState::GROUNDROLL) {
+        }
+        else if (isTargetInRangeToHome(zhineActor->mCoordinates, getShockRadius()) &&
+                 getPoundingStatus() != PoundingState::GROUNDROLL)
+        {
             this->mGroundSpeed -= (getAccelerationRate() * this->mSpeedMultiplier);
-            if (this->mGroundSpeed < 0) this->mGroundSpeed = 0;
+            if (this->mGroundSpeed < 0)
+                this->mGroundSpeed = 0;
 
             this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.x = this->mGroundSpeed * sinf(angleToRadians(zhineActor->mRotation.y));
             this->mBossInfo.mSpineEnemy.mLiveActor.mSpeed.z = this->mGroundSpeed * cosf(angleToRadians(zhineActor->mRotation.y));
         }
 
-        if (isTargetInRangeToHome(zhineActor->mCoordinates,
-                                  gpMario->mTakeActor.mHitActor.mActor.mCoordinates,
-                                  getShockRadius())) {
-
-            if (getIsPounding() == true) {
-                if (advanceDropAttack(gpPollutionManager, gpMario) == PoundingState::INACTIVE) {
-                    setIsPounding(false);
-                }
-            } else {
+        if (isTargetInRangeToHome(zhineActor->mCoordinates, getShockRadius()))
+        {
+            if (getIsPounding() && advanceDropAttack(gpPollutionManager, gpMario) == PoundingState::INACTIVE)
+                setIsPounding(false);
+            else
                 this->mBossInfo.mSpineEnemy.mLiveActor.mGravity = 0;
-            }
         }
-
-        if (isTargetInRangeToHome(zhineActor->mCoordinates,
-                                  gpMario->mTakeActor.mHitActor.mActor.mCoordinates,
-                                  getShockRadius()) == false) {
-
+        else
+        {
             setIsPounding(false);
             setPoundingStatus(PoundingState::INACTIVE);
             zhineActor->mCoordinates = getBoundingPoint();
         }
-
     }
 
     //0x80079B44
-    void init() {
-        ZhineFile* gessoZhineFile = (ZhineFile*)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc("scene"), "/bgeso/zhine.data");
-        
-        JDrama::TActor* zhineActor = &this->mBossInfo.mSpineEnemy.mLiveActor.mTakeActor.mHitActor.mActor;
-        this->mBossInfo.mGoopLevel = 0xE6;
-        
-        if (gessoZhineFile) {
+    void init()
+    {
+        ZhineFile *gessoZhineFile = (ZhineFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc("scene"), "/bgeso/zhine.data");
 
-            u32* newVTable = (u32*)malloc(0x120, 32);
+        JDrama::TActor *zhineActor = &this->mBossInfo.mSpineEnemy.mLiveActor.mTakeActor.mHitActor.mActor;
+        this->mBossInfo.mGoopLevel = 0xE6;
+
+        if (gessoZhineFile)
+        {
+
+            u32 *newVTable = (u32 *)malloc(0x120, 32);
             memcpy(newVTable, zhineActor->vTable, 0x114);
             newVTable[0xD0 / 4] = (u32)gessoZhineFile + (u32)gessoZhineFile->mCodeBlock[0]; //Replace move vtable entry
-            *(u32*)0x803B2A94 = (u32)gessoZhineFile + (u32)gessoZhineFile->mCodeBlock[1]; //Replace eye damage vtable entry
+            *(u32 *)0x803B2A94 = (u32)gessoZhineFile + (u32)gessoZhineFile->mCodeBlock[1];  //Replace eye damage vtable entry
 
             this->setBoundingPoint(&gessoZhineFile->ZhineBinData.mBoundingPoint);
             this->setBoundingRadius(gessoZhineFile->ZhineBinData.mBoundingAreaRadius);
@@ -411,55 +449,62 @@ class TDarkZhine {
             this->setMaxPoundingHeight(gessoZhineFile->ZhineBinData.mMaxPoundingHeight);
 
             zhineActor->vTable = newVTable;
-            *(float*)0x8041014C = gessoZhineFile->ZhineBinData.mBoundingAreaRadius;
-            *(float*)0x80410150 *= gessoZhineFile->ZhineBinData.mSpeedMultiplier;
+            *(float *)0x8041014C = gessoZhineFile->ZhineBinData.mBoundingAreaRadius;
+            *(float *)0x80410150 *= gessoZhineFile->ZhineBinData.mSpeedMultiplier;
 
             this->mBossInfo.mGoopLevel = gessoZhineFile->ZhineBinData.mGoopLevel;
             this->setIsDarkZhine(true);
-        } else {
+        }
+        else
+        {
             this->setIsDarkZhine(false);
         }
         initAnmSound__10TLiveActorFv(this);
         return;
     }
 
-    TDarkZhine* destroy() {
+    TDarkZhine *destroy()
+    {
         //use r6 and up
-        *(u32*)0x803B2A94 = 0x80074E54; //restore eye damage vtable entry
-        *(float*)0x8041014C = 800;
-        *(float*)0x80410150 = 3000;
+        *(u32 *)0x803B2A94 = 0x80074E54; //restore eye damage vtable entry
+        *(float *)0x8041014C = 800;
+        *(float *)0x80410150 = 3000;
         return this;
     }
-
 };
 
 //0x80005004
-u32 cleanZhine(u32* gpNerveBGEye, TSpineBase<TLiveActor>* gpSpineBase) {
-    TDarkZhine* gpDarkZhine = (TDarkZhine*)gpSpineBase->mTarget;
-    if (gpDarkZhine->getCleaningTimer() < gpDarkZhine->getFramesToCleanOnce()) {
+u32 cleanZhine(u32 *gpNerveBGEye, TSpineBase<TLiveActor> *gpSpineBase)
+{
+    TDarkZhine *gpDarkZhine = (TDarkZhine *)gpSpineBase->mTarget;
+    if (gpDarkZhine->getCleaningTimer() < gpDarkZhine->getFramesToCleanOnce())
+    {
         gpDarkZhine->setCleaningTimer(gpDarkZhine->getCleaningTimer() + 1);
         return 0;
-    } else {
+    }
+    else
+    {
         gpDarkZhine->setCleaningTimer(0);
         return execute__17TNerveBGEyeDamageCFP24TSpineBase_1(gpNerveBGEye, gpSpineBase);
     }
 }
 
 //0x800764CC
-void canUtilizeTentacles(u32* TBGTentacle, u32* unk1, u32* JDramaGraphics, TDarkZhine* thisZhine) {
+void canUtilizeTentacles(u32 *TBGTentacle, u32 *unk1, u32 *JDramaGraphics, TDarkZhine *thisZhine)
+{
     //mr r6, r31
-    if (thisZhine->getIsDarkZhine() == false) {
+    if (thisZhine->getIsDarkZhine() == false)
+    {
         testPerform__Q26JDrama8TViewObjFUlPQ26JDrama9TGraphics(TBGTentacle, unk1, JDramaGraphics);
-    }    
+    }
 }
 
 //0x80005000
-void control(TDarkZhine* thisZhine) {
-    TMario* gpMario = (TMario*)*(u32*)TMarioInstance;
+void control(TDarkZhine *thisZhine)
+{
+    TMario *gpMario = (TMario *)*(u32 *)TMarioInstance;
     thisZhine->update(gpMario);
 }
-
-
 
 //0x800FFFAC = remove tentacles BLR, 0x800764CC perform tentacles?
 

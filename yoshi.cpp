@@ -237,7 +237,7 @@ void checkForFreeEggCard(TEggYoshi* gpEgg) {
 
 //0x8028121C
 void saveNozzles(TYoshi* gpYoshi, TMario* gpMario) {
-    //mr r4, r31
+    register TMario* gpMario asm ("r31");
     gInfo.Fludd.mCurrentNozzle = gpMario->mFludd->mCurrentNozzle;
     gInfo.Fludd.mSecondNozzle = gpMario->mFludd->mSecondNozzle;
     gInfo.Fludd.mCurrentWater = gpMario->mFludd->mCurrentWater;
@@ -247,10 +247,10 @@ void saveNozzles(TYoshi* gpYoshi, TMario* gpMario) {
 
 //0x8024EC18
 void restoreNozzles(TMario* gpMario) {
-    float factor = (float)gInfo.Fludd.mCurrentWater / (float)gpMario->mFludd->mNozzleList[gInfo.Fludd.mCurrentNozzle]->mMaxWater;
+    float factor = (float)gInfo.Fludd.mCurrentWater / (float)gpMario->mFludd->mNozzleList[(u8)gInfo.Fludd.mCurrentNozzle]->mMaxWater;
     changeNozzle__9TWaterGunFQ29TWaterGun11TNozzleTypeb(gpMario->mFludd, gInfo.Fludd.mSecondNozzle, 1);
     normalizeNozzle__6TMarioFv(gpMario);
-    gpMario->mFludd->mCurrentWater = gpMario->mFludd->mNozzleList[gpMario->mFludd->mCurrentNozzle]->mMaxWater * factor;
+    gpMario->mFludd->mCurrentWater = gpMario->mFludd->mNozzleList[(u8)gpMario->mFludd->mCurrentNozzle]->mMaxWater * factor;
     gpMario->mAttributes.mHasFludd = gInfo.Fludd.mHadFludd;
 }
 

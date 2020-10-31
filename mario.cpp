@@ -390,3 +390,33 @@ lfs f2, 0x42A4 (r31)
 fmuls f0, f0, f2
 notMario:
 */
+
+struct JumpData
+{
+    u32 mCurrentJump;
+    u32 mMaxJumps;
+};
+
+//0x8024E02C
+void manageExtraJumps(TMario* gpMario) {
+    if (!isMario__6TMarioFv(gpMario)) return;
+
+    JumpData *globalJumpData = (JumpData *)0x80003BD0;
+    if ((gpMario->mState & STATE_AIRBORN) == false || (gpMario->mState & 0x800000) || gpMario->mYoshi->mState == MOUNTED) {
+        globalJumpData->mCurrentJump = 1;
+    } else {
+        if (gpMario->mController->FrameButtons.mAButton &
+            globalJumpData->mCurrentJump < globalJumpData->mMaxJumps &
+            gpMario->mState != STATE_WALLSLIDE) {
+            if ((globalJumpData->mMaxJumps - globalJumpData->mCurrentJump) == 1) {
+                changePlayerJumping__6TMarioFUlUl(gpMario, STATE_TRIPLE_J, 0);
+            } else if ((gpMario->mState - STATE_JUMP) > 1) {
+                changePlayerJumping__6TMarioFUlUl(gpMario, STATE_JUMP, 0);
+            } else {
+                changePlayerJumping__6TMarioFUlUl(gpMario, gpMario->mState ^ 1, 0);
+            }
+            globalJumpData->mCurrentJump += 1;
+        }
+    }
+    stateMachine__6TMarioFv(gpMario);
+}
