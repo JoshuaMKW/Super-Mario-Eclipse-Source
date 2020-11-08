@@ -9,6 +9,11 @@ void *operator new(unsigned long size)
     return malloc(size, 32);
 }
 
+void operator delete(void *obj)
+{
+    free(obj);
+}
+
 static inline void flushAddr(void *addr)
 {
     dcbf(addr);
