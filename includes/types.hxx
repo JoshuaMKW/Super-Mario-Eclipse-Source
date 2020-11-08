@@ -1,8 +1,10 @@
-typedef unsigned int u32;
-typedef unsigned short u16;
-typedef unsigned char u8;
-typedef int s32;
-typedef short s16;
-typedef char s8;
-typedef float f32;
-typedef double f64;
+#pragma once
+
+using u32 = unsigned int;
+using u16 = unsigned short;
+using u8 = unsigned char;
+using s32 = int;
+using s16 = short;
+using s8 = char;
+using f32 = float;
+using f64 = double;

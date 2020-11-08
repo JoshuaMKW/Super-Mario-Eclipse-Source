@@ -1,3 +1,5 @@
+#pragma once
+
 #include "define.hxx"
 #include "funcs.hxx"
 #include "types.hxx"
@@ -790,8 +792,7 @@ public:
 
 class TMarioGamePad
 {
-
-private:
+public:
     enum BUTTONS : u32
     {
         MAINSTICK_UP = 0x8000000,
@@ -815,6 +816,8 @@ private:
         DPAD_RIGHT = 0x2,
         DPAD_LEFT = 0x1
     };
+
+private:
 
     virtual ~TMarioGamePad() = 0;
 
@@ -1072,6 +1075,10 @@ public:
     u16 _10;                              //0x00D2
     u32 _11[0x1C / 4];                    //0x00D4
     TEggYoshi *mEgg;                      //0x00F0
+
+    bool isGreenYoshi();
+    bool isGreenYoshiMounted();
+    static bool isGreenYoshiAscendingWater(TMario *gpMario);
 };
 
 class TMario : public TTakeActor

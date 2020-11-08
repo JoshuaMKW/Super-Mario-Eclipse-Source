@@ -1,3 +1,5 @@
+#pragma once
+
 #include "funcs.hxx"
 
 #define malloc(size, alignment) __nwa__FUl(size, alignment)

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "eclipse.hxx"
 
 const char *getStageName(TApplication *gpApplication)

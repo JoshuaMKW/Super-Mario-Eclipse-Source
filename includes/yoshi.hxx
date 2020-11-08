@@ -1,17 +1,19 @@
+#pragma once
+
 #include "eclipse.hxx"
 
-bool isGreenYoshi(TYoshi* gpYoshi) {
-    return gpYoshi->mType == GREEN_YOSHI;
+bool TYoshi::isGreenYoshi() {
+    return this->mType == TYoshi::TYPE::GREEN;
 }
 
-bool isGreenYoshiMounted(TYoshi* gpYoshi) {
-    return isGreenYoshi(gpYoshi) && gpYoshi->mState == MOUNTED;
+bool TYoshi::isGreenYoshiMounted() {
+    return this->isGreenYoshi() && this->mState == TYoshi::STATE::MOUNTED;
 }
 
-bool isGreenYoshiAscendingWater(TMario* gpMario) {
-    if (gpMario->mAttributes.mIsWater == false ||
-        gpMario->mController->Buttons.mAButton == false ||
-        isGreenYoshiMounted(gpMario->mYoshi) == false) {
+bool TYoshi::isGreenYoshiAscendingWater(TMario* gpMario) {
+    if (!(gpMario->mAttributes & TMario::STATUS::PUDDLE) ||
+        !gpMario->mController->isPressed(TMarioGamePad::BUTTONS::A) ||
+        !gpMario->mYoshi->isGreenYoshiMounted()) {
         return false;
     } else {
         return true;

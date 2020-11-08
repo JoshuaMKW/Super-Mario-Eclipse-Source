@@ -1,3 +1,5 @@
+#pragma once
+
 #define memset ((void *(*)(void *src, void *fill, u32 size))0x80003100)
 #define __fill_mem ((u32 (*)(...))0x80003130)
 #define memcpy ((void *(*)(void *dest, void *src, u32 size))0x800031F4)
