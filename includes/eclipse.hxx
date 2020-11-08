@@ -46,8 +46,11 @@ struct OSCalendarTime
     u32 mMicroseconds;
 };
 
-class SMEFile;
 class MarioParamsFile;
+class SMEFile;
+class TMario;
+class TYoshi;
+class TNozzle;
 class Vector3D;
 
 struct AreaEpisodeArray
@@ -197,6 +200,29 @@ namespace JUTGamePad
     };
 
 }; // namespace JUTGamePad
+
+typedef u32 JSUStreamSeekFrom;
+
+struct JSUIosBase
+{
+    virtual ~JSUIosBase() = 0;
+    virtual s32 getAvailable() const = 0;
+    virtual void skip(s32 len) = 0;
+    virtual void readData(void *dest, s32 len) = 0;
+    virtual s32 getLength() const = 0;
+    virtual s32 getPosition() const = 0;
+    virtual void seekPos(s32 address, JSUStreamSeekFrom whence);
+};
+
+struct JSUInputStream : public JSUIosBase
+{
+    void read(void *dest, s32 len);
+};
+
+struct JSUOutputStream : public JSUIosBase
+{
+    void write(const void *source, s32 len);
+};
 
 class TCardBookmarkInfo
 {
@@ -853,12 +879,12 @@ private:
 public:
     bool isPressed(BUTTONS input)
     {
-        return (this->mButtons & input) == 1;
+        return this->mButtons & input;
     }
 
     bool isFramePressed(BUTTONS input)
     {
-        return (this->mFrameButtons & input) == 1;
+        return this->mFrameButtons & input;
     }
 
     bool isRecordingInput()
@@ -1165,7 +1191,7 @@ public:
         GONE = 0x00200000
     };
 
-    enum VOICE : u32
+    enum class VOICE : u32
     {
         CANNON_WAIL = 30911,
         TRIPLE_JUMP = 30902,
@@ -1173,7 +1199,7 @@ public:
         DIVE_OUT = 30897,
     };
 
-    enum ANIMATION : u32
+    enum class ANIMATION : u32
     {
         IDLE = 0xC3,
         FALL = 0x4C,
@@ -1182,7 +1208,7 @@ public:
         SHINEGET = 0xCD
     };
 
-    enum EFFECT : u32
+    enum class EFFECT : u32
     {
         SMOKE_CLOUD = 0x1,
         ROCKET_SPRAY_MIST = 0x2,
@@ -1226,6 +1252,7 @@ public:
         u8 mPlayerID;        //0x0013
     };
 
+    /*
     virtual ~TMario() = 0;
     virtual u32 getType() = 0;
     virtual void load(JSUInputStream &stream) = 0;
@@ -1233,6 +1260,7 @@ public:
     virtual void loadAfter() = 0;
     virtual void searchF(u32 unk1, u32 unk2) = 0;
     virtual void perform(JDrama::TGraphics *graphics) = 0;
+    */
 
     u32 _00[0xC / 4];                 //0x0070
     STATE mState;                     //0x007C
@@ -1466,29 +1494,6 @@ public:
     TSMSFader *mFader;              //0x0034
     u32 _04[0x8 / 4];               //0x0038
     u32 *mJKRExpHeapHi;             //0x0040
-};
-
-typedef u32 JSUStreamSeekFrom;
-
-struct JSUIosBase
-{
-    virtual ~JSUIosBase() = 0;
-    virtual s32 getAvailable() const = 0;
-    virtual void skip(s32 len) = 0;
-    virtual void readData(void *dest, s32 len) = 0;
-    virtual s32 getLength() const = 0;
-    virtual s32 getPosition() const = 0;
-    virtual void seekPos(s32 address, JSUStreamSeekFrom whence);
-};
-
-struct JSUInputStream : public JSUIosBase
-{
-    void read(void *dest, s32 len);
-};
-
-struct JSUOutputStream : public JSUIosBase
-{
-    void write(const void *source, s32 len);
 };
 
 class SMEFile
@@ -1967,6 +1972,6 @@ struct CustomInfo
 };
 
 CustomInfo gInfo;
-RGBA waterColor;
-RGBA juiceColor;
-RGBA yoshiColor;
+RGBA<u8> waterColor;
+RGBA<u8> juiceColor;
+RGBA<u8> yoshiColor;
