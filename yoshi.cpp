@@ -237,7 +237,6 @@ void checkForFreeEggCard(TEggYoshi* gpEgg) {
 
 //0x8028121C
 void saveNozzles(TYoshi* gpYoshi, TMario* gpMario) {
-    register TMario* gpMario asm ("r31");
     gInfo.Fludd.mCurrentNozzle = gpMario->mFludd->mCurrentNozzle;
     gInfo.Fludd.mSecondNozzle = gpMario->mFludd->mSecondNozzle;
     gInfo.Fludd.mCurrentWater = gpMario->mFludd->mCurrentWater;

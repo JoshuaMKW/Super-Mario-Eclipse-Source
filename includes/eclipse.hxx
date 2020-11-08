@@ -2,10 +2,10 @@
 #include "funcs.hxx"
 #include "types.hxx"
 
-/*void override new(void obj)
+void *operator new(unsigned long size)
 {
-    malloc(sizeof(obj), 32);
-}*/
+    return malloc(size, 32);
+}
 
 static inline void flushAddr(void *addr)
 {
@@ -14,26 +14,20 @@ static inline void flushAddr(void *addr)
 }
 
 template <typename T>
-struct Vec3
-{
-    T x;
-    T y;
-    T z;
-};
-
 struct RGB
 {
-    u8 R;
-    u8 G;
-    u8 B;
+    T R;
+    T G;
+    T B;
 };
 
+template <typename T>
 struct RGBA
 {
-    u8 R;
-    u8 G;
-    u8 B;
-    u8 A;
+    T R;
+    T G;
+    T B;
+    T A;
 };
 
 struct OSCalendarTime
@@ -65,7 +59,6 @@ namespace JGeometry
 {
 
     template <typename T>
-
     struct TVec3
     {
         T x;
@@ -79,6 +72,10 @@ namespace JDrama
 {
 
     class TDisplay
+    {
+    };
+
+    class TGraphics
     {
     };
 
@@ -99,19 +96,17 @@ namespace JDrama
         u16 mKeyCode;    //0x0008
     };
 
-    class TViewObj
+    class TViewObj : public TNameRef
     {
 
     public:
-        TNameRef mNameRef;  //0x0000
         TFlagT<u16> mFlags; //0x000C
     };
 
-    class TPlacement
+    class TPlacement : public TViewObj
     {
 
     public:
-        TViewObj mViewObj;                 //0x0000
         JGeometry::TVec3<float> mPosition; //0x0010
         TFlagT<u16> mFlags;                //0x001C
     };
@@ -125,11 +120,10 @@ namespace JDrama
         u32 _01[0x14 / 4];                    //0x001C
     };
 
-    class TLookAtCamera
+    class TLookAtCamera : public TCamera
     {
 
     public:
-        TCamera mCamera;                         //0x0000
         JGeometry::TVec3<float> mUpVector;       //0x0030
         JGeometry::TVec3<float> mTargetPosition; //0x003C
         float mProjectionFovy;                   //0x0048
@@ -144,8 +138,8 @@ namespace JDrama
         u32 _00[0xC / 4];                     //0x0004
         JGeometry::TVec3<float> mCoordinates; //0x0010
         u32 _01[0x8 / 4];                     //0x001C
-        Vec3<float> mSize;                    //0x0024
-        Vec3<float> mRotation;                //0x0030
+        JGeometry::TVec3<float> mSize;        //0x0024
+        JGeometry::TVec3<float> mRotation;    //0x0030
         u32 _02[0x8 / 4];                     //0x003C
     };
 
@@ -305,11 +299,11 @@ class TRailNode
 {
 
 public:
-    Vec3<s16> mPosition;          //0x0000
-    s16 mNeighborCount;           //0x0006
-    u32 _00[0xC / 4];             //0x0008
-    s16 mNeighborIDs[8];          //0x0014
-    float mNeightborDistances[8]; //0x0024
+    JGeometry::TVec3<s16> mPosition; //0x0000
+    s16 mNeighborCount;              //0x0006
+    u32 _00[0xC / 4];                //0x0008
+    s16 mNeighborIDs[8];             //0x0014
+    float mNeightborDistances[8];    //0x0024
 };
 
 class TGraphWeb
@@ -369,11 +363,10 @@ public:
     u32 *callbackVTable; //0x0044
 };
 
-class THitActor
+class THitActor : public JDrama::TActor
 {
 
 public:
-    JDrama::TActor mActor;      //0x0000
     THitActor **mCollidingObjs; //0x0044
     s16 mNumObjs;               //0x0048
     s16 mMaxObjs;               //0x004
@@ -386,41 +379,37 @@ public:
     u32 mObjectType;            //0x0064
 };
 
-class TTakeActor
+class TTakeActor : public THitActor
 {
 
 public:
-    THitActor mHitActor;     //0x0000
     TTakeActor *mHolder;     //0x0068
     TTakeActor *mHeldObject; //0x006C
 };
 
-class TLiveActor
+class TLiveActor : public TTakeActor
 {
 
 public:
-    TTakeActor mTakeActor;              //0x0000
-    u32 _00[0x1C / 4];                  //0x0070
-    TSpineBase<TLiveActor> *mSpineBase; //0x008C
-    u32 _01;                            //0x0090
-    Vec3<float> mPositionalVelocity;    //0x0094
-    Vec3<float> mRotationalVelocity;    //0x00A0
-    Vec3<float> mSpeed;                 //0x00AC
-    float mShadowRadius;                //0x00B8
-    float mMaxSpeed;                    //0x00BC
-    float _02;                          //0x00C0
-    TBGCheckData *mFloorBelow;          //0x00C4
-    u32 _03;                            //0x00C8
-    float mGravity;                     //0x00CC
-    u32 _04[0x20 / 4];                  //0x00D0
+    u32 _00[0x1C / 4];                           //0x0070
+    TSpineBase<TLiveActor> *mSpineBase;          //0x008C
+    u32 _01;                                     //0x0090
+    JGeometry::TVec3<float> mPositionalVelocity; //0x0094
+    JGeometry::TVec3<float> mRotationalVelocity; //0x00A0
+    JGeometry::TVec3<float> mSpeed;              //0x00AC
+    float mShadowRadius;                         //0x00B8
+    float mMaxSpeed;                             //0x00BC
+    float _02;                                   //0x00C0
+    TBGCheckData *mFloorBelow;                   //0x00C4
+    u32 _03;                                     //0x00C8
+    float mGravity;                              //0x00CC
+    u32 _04[0x20 / 4];                           //0x00D0
 };
 
-class TMapObjBase
+class TMapObjBase : public TLiveActor
 {
 
 public:
-    TLiveActor mLiveActor; //0x0000
-
     struct
     {
         u32 _00 : 7;
@@ -441,11 +430,10 @@ public:
     u32 _02[0x30 / 4]; //0x0100
 };
 
-class TSpineEnemy
+class TSpineEnemy : public TLiveActor
 {
 
 public:
-    TLiveActor mLiveActor;      //0x0000
     u32 _00[0x34 / 4];          //0x00F0
     TGraphTracer *mGraphTracer; //0x0124
     u32 _01[0x28 / 4];          //0x0128
@@ -459,17 +447,16 @@ public:
     JGeometry::TVec3<float> mSubjectPos; //0x0030
 };
 
-class CPolarSubCamera
+class CPolarSubCamera : JDrama::TLookAtCamera
 {
 
 public:
-    JDrama::TLookAtCamera mLookAtCamera; //0x0000
-    u32 _00[0x1C / 4];                   //0x0050
-    TCameraInbetween *mInbetween;        //0x006C
-    u32 _01[0x34 / 4];                   //0x0070
-    u16 _02;                             //0x00A4
-    u16 mHorizontalAngle;                //0x00A6
-    float mInterpolateDistance;          //0x00A8
+    u32 _00[0x1C / 4];            //0x0050
+    TCameraInbetween *mInbetween; //0x006C
+    u32 _01[0x34 / 4];            //0x0070
+    u16 _02;                      //0x00A4
+    u16 mHorizontalAngle;         //0x00A6
+    float mInterpolateDistance;   //0x00A8
 };
 
 class TJointModel
@@ -492,23 +479,21 @@ public:
     TPollutionPos mPosition; //0x005C
 };
 
-class TPollutionLayer
+class TPollutionLayer : public TJointModel
 {
 
 public:
-    TJointModel mJointModel; //0x0000
-    u16 mPollutionEffect;    //0x0030
+    u16 mPollutionEffect; //0x0030
 };
 
 class TPollutionManager
 {
 };
 
-class TBossManta
+class TBossManta : TSpineEnemy
 {
 
 public:
-    TSpineEnemy mSpineEnemy; //0x0000
     u32 _00[0x3C / 4];       //0x0150
     u32 mGeneration;         //0x018C
     float mSpeed;            //0x0190
@@ -535,16 +520,16 @@ public:
     u16 _00;                              //0x001C
     u16 _01;                              //0x001E
     void *mVTable;                        //0x0020
-    Vec3<float> _02;                      //0x0024
-    Vec3<float> _03;                      //0x0030
+    JGeometry::TVec3<float> _02;          //0x0024
+    JGeometry::TVec3<float> _03;          //0x0030
     u32 _04;                              //0x003C
     u32 _05;                              //0x0040
-    Vec3<float> mVelocity;                //0x0044
+    JGeometry::TVec3<float> mVelocity;    //0x0044
     u32 _06[0x8 / 4];                     //0x0050
     u32 mStatus;                          //0x0058
 };
 
-class TBossGesso
+class TBossGesso : public TSpineEnemy
 {
 
 public:
@@ -557,7 +542,6 @@ public:
         SHOOT
     };
 
-    TSpineEnemy mSpineEnemy;    //0x0000
     u32 _00[0x18 / 4];          //0x0150
     u32 mAttackState;           //0x0168
     u32 mAttackTimer;           //0x016C
@@ -620,7 +604,7 @@ class TSMSFader
 
 public:
     u32 _00[0x18 / 4]; //0x0000
-    RGB mColor;        //0x0018
+    RGB<u8> mColor;    //0x0018
     s8 mState;         //0x001B
     bool _01;          //0x001C
     u32 mFadeStatus;   //0x0020
@@ -633,30 +617,30 @@ class TGCConsole2
 {
 
 public:
-    u32 _00[0x24 / 4];       //0x0000
-    s32 mShineCount;         //0x0024
-    s32 mCurWater;           //0x0028
-    u32 _01[0x18 / 4];       //0x002C
-    bool mIsDEBSAlert;       //0x0044
-    bool mWaterCardRising;   //0x0045
-    bool mIsWaterCard;       //0x0046
-    u8 _02;                  //0x0047
-    u16 _03;                 //0x0048
-    u8 _04;                  //0x004A
-    bool mWaterCardFalling;  //0x004B
-    u32 _05[0x4C / 4];       //0x004C
-    u16 _06;                 //0x0098
-    RGBA mWaterLeftPanel;    //0x009A
-    RGBA mWaterRightPanel;   //0x009E
-    RGBA mJuiceCardOrange;   //0x00A2
-    RGBA mJuiceCardPurple;   //0x00A6
-    RGBA mJuiceCardPink;     //0x00AA
-    u16 _07;                 //0x00AE
-    u32 _08[0x1F0 / 4];      //0x00B0
-    u32 *mWaterCardInfo;     //0x02A0
-    u32 _09[0x14 / 4];       //0x02A4
-    u32 mWaterCardTopHeight; //0x02B8
-    u32 _10[0x34 / 4];       //0x02BC
+    u32 _00[0x24 / 4];         //0x0000
+    s32 mShineCount;           //0x0024
+    s32 mCurWater;             //0x0028
+    u32 _01[0x18 / 4];         //0x002C
+    bool mIsDEBSAlert;         //0x0044
+    bool mWaterCardRising;     //0x0045
+    bool mIsWaterCard;         //0x0046
+    u8 _02;                    //0x0047
+    u16 _03;                   //0x0048
+    u8 _04;                    //0x004A
+    bool mWaterCardFalling;    //0x004B
+    u32 _05[0x4C / 4];         //0x004C
+    u16 _06;                   //0x0098
+    RGBA<u8> mWaterLeftPanel;  //0x009A
+    RGBA<u8> mWaterRightPanel; //0x009E
+    RGBA<u8> mJuiceCardOrange; //0x00A2
+    RGBA<u8> mJuiceCardPurple; //0x00A6
+    RGBA<u8> mJuiceCardPink;   //0x00AA
+    u16 _07;                   //0x00AE
+    u32 _08[0x1F0 / 4];        //0x00B0
+    u32 *mWaterCardInfo;       //0x02A0
+    u32 _09[0x14 / 4];         //0x02A4
+    u32 mWaterCardTopHeight;   //0x02B8
+    u32 _10[0x34 / 4];         //0x02BC
 };
 
 //This is not officially named, simply fits a thing I needed lul
@@ -807,68 +791,36 @@ public:
 class TMarioGamePad
 {
 
-public:
-    u32 _00[0x18 / 4]; //0x0000
-
-    struct
+private:
+    enum BUTTONS : u32
     {
+        MAINSTICK_UP = 0x8000000,
+        MAINSTICK_DOWN = 0x4000000,
+        MAINSTICK_RIGHT = 0x2000000,
+        MAINSTICK_LEFT = 0x1000000,
+        CSTICK_UP = 0x80000,
+        CSTICK_DOWN = 0x40000,
+        CSTICK_RIGHT = 0x20000,
+        CSTICK_LEFT = 0x10000,
+        START = 0x1000,
+        Y = 0x800,
+        X = 0x400,
+        B = 0x200,
+        A = 0x100,
+        L = 0x40,
+        R = 0x20,
+        Z = 0x10,
+        DPAD_UP = 0x8,
+        DPAD_DOWN = 0x4,
+        DPAD_RIGHT = 0x2,
+        DPAD_LEFT = 0x1
+    };
 
-        u32 _00 : 4; //0x0018
-        bool mMainStickUp : 1;
-        bool mMainStickDown : 1;
-        bool mMainStickRight : 1;
-        bool mMainStickLeft : 1;
-        u32 _01 : 4;
-        bool mCStickUp : 1;
-        bool mCStickDown : 1;
-        bool mCStickRight : 1;
-        bool mCStickLeft : 1;
-        u32 _02 : 3;
-        bool mSButton : 1;
-        bool mYButton : 1;
-        bool mXButton : 1;
-        bool mBButton : 1;
-        bool mAButton : 1;
-        u32 _03 : 1;
-        bool mLButton : 1;
-        bool mRButton : 1;
-        bool mZButton : 1;
-        bool mDPadUp : 1;
-        bool mDPadDown : 1;
-        bool mDPadRight : 1;
-        bool mDPadLeft : 1;
+    virtual ~TMarioGamePad() = 0;
 
-    } Buttons;
-
-    struct
-    {
-        u32 _00 : 4; //0x0018
-        bool mMainStickUp : 1;
-        bool mMainStickDown : 1;
-        bool mMainStickRight : 1;
-        bool mMainStickLeft : 1;
-        u32 _01 : 4;
-        bool mCStickUp : 1;
-        bool mCStickDown : 1;
-        bool mCStickRight : 1;
-        bool mCStickLeft : 1;
-        u32 _02 : 3;
-        bool mSButton : 1;
-        bool mYButton : 1;
-        bool mXButton : 1;
-        bool mBButton : 1;
-        bool mAButton : 1;
-        u32 _03 : 1;
-        bool mLButton : 1;
-        bool mRButton : 1;
-        bool mZButton : 1;
-        bool mDPadUp : 1;
-        bool mDPadDown : 1;
-        bool mDPadRight : 1;
-        bool mDPadLeft : 1;
-
-    } FrameButtons;
-
+    u32 _00[0x14 / 4];         //0x0004
+    BUTTONS mButtons;          //0x0018
+    BUTTONS mFrameButtons;     //0x001C
     u32 _01;                   //0x0020
     u16 _02;                   //0x0024
     u8 mLButtonAnalogU8;       //0x0026
@@ -894,17 +846,43 @@ public:
         bool mReadInput : 1;
         u8 _01 : 1;
     } State; //0x00E3
+
+public:
+    bool isPressed(BUTTONS input)
+    {
+        return (this->mButtons & input) == 1;
+    }
+
+    bool isFramePressed(BUTTONS input)
+    {
+        return (this->mFrameButtons & input) == 1;
+    }
+
+    bool isRecordingInput()
+    {
+        return this->State.mReadInput;
+    }
+
+    BUTTONS getInput() { return this->mButtons; }
+    BUTTONS getFrameInput() { return this->mFrameButtons; }
+    float getLAnalogf() { return this->mLButtonAnalogFloat; }
+    float getRAnalogf() { return this->mRButtonAnalogFloat; }
+    u8 getLAnalog() { return this->mLButtonAnalogU8; }
+    u8 getRAnalog() { return this->mRButtonAnalogU8; }
+    float getMainStickAnalogX() { return this->mMainStickLeftRight; }
+    float getMainStickAnalogY() { return this->mMainStickUpDown; }
+    float getMainStickDist() { return this->mMainStickOffset; }
+    float getCStickAnalogX() { return this->mCStickLeftRight; }
+    float getCStickAnalogY() { return this->mCStickUpDown; }
+    float getCStickDist() { return this->mCStickOffset; }
 };
 
 class TConductor
 {
 };
 
-class TDemoCannon
+class TDemoCannon : public TMapObjBase
 {
-
-public:
-    TMapObjBase mMapObjBase; //0x0000
 };
 
 class TMarioCap
@@ -932,16 +910,15 @@ public:
     u32 _10[0x278 / 4];        //0x010C
 };
 
-class TNozzleTrigger
+class TNozzleTrigger : public TNozzleBase
 {
 
 public:
-    TNozzleBase mBase; //0x0000
-    u8 _00;            //0x0384
-    u8 _01;            //0x0385
-    u16 _02;           //0x0386
-    float _03;         //0x0388
-    u32 _04;           //0x038C
+    u8 _00;    //0x0384
+    u8 _01;    //0x0385
+    u16 _02;   //0x0386
+    float _03; //0x0388
+    u32 _04;   //0x038C
 };
 
 class TWaterGun
@@ -960,7 +937,7 @@ public:
     };
 
     u32 _00[0x8 / 4];                      //0x0000
-    class TMario *mMario;                  //0x0008
+    TMario *mMario;                        //0x0008
     TNozzleBase mNozzleDeform;             //0x000C
     TNozzleTrigger mNozzleDeformBomb;      //0x0390
     TNozzleTrigger mNozzleRocket;          //0x0720
@@ -984,11 +961,10 @@ public:
     u32 _16[0xA0 / 4];                     //0x1D1C
 };
 
-class TNozzleBox
+class TNozzleBox : public TMapObjBase
 {
 
 public:
-    TMapObjBase mObjBase;     //0x0000
     u32 _00[0x18 / 4];        //0x0130
     u32 mNozzleToRegen;       //0x0148
     TMapObjBase *mNozzleItem; //0x014C
@@ -1002,15 +978,14 @@ public:
     u16 _04;                  //0x0162
 };
 
-class TEggYoshi
+class TEggYoshi : public TMapObjBase
 {
 
 public:
-    TMapObjBase mObjBase; //0x0000
-    u32 _00[0x18 / 4];    //0x0130
-    MActor *mActor;       //0x0148
-    s32 mWantedFruit;     //0x014C
-    TMario *mMario;       //0x0150
+    u32 _00[0x18 / 4]; //0x0130
+    MActor *mActor;    //0x0148
+    s32 mWantedFruit;  //0x014C
+    TMario *mMario;    //0x0150
 };
 
 class TWaterManager
@@ -1044,20 +1019,37 @@ public:
     u8 mLayerCount;      //0x5E44
     u8 mDarkLevel;       //0x5E45
     u8 _09;              //0x5E46
-    RGBA mColor;         //0x5E47
+    RGBA<u8> mColor;     //0x5E47
 };
 
 class TYoshi
 {
 
 public:
+    enum TYPE : s8
+    {
+        GREEN,
+        ORANGE,
+        PURPLE,
+        PINK
+    };
+
+    enum STATE : s8
+    {
+        EGG = 0,
+        DROWNING = 3,
+        DYING = 4,
+        UNMOUNTED = 6,
+        MOUNTED = 8
+    };
+
     s8 mState;                            //0x0000
     u8 _00;                               //0x0001
     u16 mSubState;                        //0x0002 ??
     u32 _01;                              //0x0004
     s32 mMaxJuice;                        //0x0008
     s32 mCurJuice;                        //0x000C
-    class TMario *mMario;                 //0x0010
+    TMario *mMario;                       //0x0010
     u32 _02[0xC / 4];                     //0x0014
     JGeometry::TVec3<float> mCoordinates; //0x0020
     u32 _03[0x8 / 4];                     //0x002C
@@ -1082,14 +1074,140 @@ public:
     TEggYoshi *mEgg;                      //0x00F0
 };
 
-class TMario
+class TMario : public TTakeActor
 {
 
 public:
-    TTakeActor mTakeActor;            //0x0000
+    enum STATE : u32
+    {
+        NUMBER = 0x0000000F,
+        DOJUMP = 0x00000080,
+        AIRBORN = 0x00000800,
+        CUTSCENE = 0x00001000,
+        WATERBORN = 0x00002000,
+        RUNNING = 0x04000440,
+        IDLE = 0x0C400201,
+        STOP = 0x0C00023D,
+        SPIN = 0x00000441,
+        JUMPSPIN = 0x00000890,
+        JUMPSPIN1 = 0x00000895,
+        JUMPSPIN2 = 0x00000896,
+        JUMP = 0x02000880,
+        D_JUMP = 0x02000881,
+        TRIPLE_J = 0x00000882,
+        JMP_LAND = 0x04000470,
+        HVY_LAND = 0x04000473,
+        D_LAND = 0x04000472,
+        T_LAND = 0x0800023A,
+        JUMPSIDE = 0x00000880,
+        BOUNCE = 0x00000884,
+        SIDESTEP = 0x0C008220,
+        SIDE_FLIP = 0x00000887,
+        FALL = 0x0000088C,
+        SWIM = 0x000024D7,
+        DIVE = 0x0080088A,
+        DIVEJUMP = 0x02000889,
+        DIVESLIDE = 0x00800456,
+        CLIMB = 0x18100340,
+        CLIMBUP = 0x10100343,
+        WALLJUMP = 0x02000886,
+        WALLSLIDE = 0x000008A7,
+        HANG = 0x3800034B,
+        HANGCLIMB = 0x3000054F,
+        SLAMSTART = 0x008008A9,
+        SLAM = 0x0080023C,
+        SPRAY = 0x0C008220,
+        THROWN = 0x000208B8,
+        HOVER = 0x0000088B,
+        STUCK = 0x0002033C,
+        TALKING = 0x10001308,
+        TURNING = 0x00000444,
+        YOSHI_ESC = 0x0000089C,
+        SHINE_C = 0x00001302, // Collected Shine Sprite
+        DEATH = 0x00020467,
+        DOOR_F_O = 0x00001321, // Door open fail
+        WALL_S_L = 0x04000471,
+        F_KNCK_H = 0x000208B0, // hard knockback from front (bumping into a wall from dive)
+        KNCK_LND = 0x00020462, // Landing from front knockback
+        KNCK_GND = 0x00020466, // Front knockback while grounded
+        FIRE_HIT = 0x000208B7,
+        FIRE_RVR = 0x08000239, // Recover from fire on ground
+        HOVER_F = 0x0000088D,  // Falling from hover
+        SLIDE_R1 = 0x000008A6, // Recover from slide by flipping
+        SLIDE_R2 = 0x00000386, // Recover from slide by getting up
+        R_SPRAY = 0x0C008220,  // Recover from spray
+        G_POUND = 0x008008A9   // Ground pounding
+    };
+
+    enum STATUS : u32
+    {
+        ALIVE = 0x1,
+        SEWER_FLOOR = 0x2,
+        INVISIBLE = 0x4,
+        NPC_TALKING = 0x8,
+        LEAVING_WATER = 0x10,
+        SLIP = 0x80,
+        GAMEOVER = 0x400,
+        UP_GROUND_POUND = 0x800,
+        HASHELMET_FOLLOWCAMERA = 0x00001000,
+        HASHELMET = 0x00002000,
+        HASFLUDD = 0x00008000,
+        SPLASH = 0x00010000,
+        PUDDLE = 0x00020000,
+        SHIRT = 0x00100000,
+        GONE = 0x00200000
+    };
+
+    enum VOICE : u32
+    {
+        CANNON_WAIL = 30911,
+        TRIPLE_JUMP = 30902,
+        JUMP = 30891,
+        DIVE_OUT = 30897,
+    };
+
+    enum ANIMATION : u32
+    {
+        IDLE = 0xC3,
+        FALL = 0x4C,
+        BOUNCE = 0x50,
+        SPINJUMP = 0xF4,
+        SHINEGET = 0xCD
+    };
+
+    enum EFFECT : u32
+    {
+        SMOKE_CLOUD = 0x1,
+        ROCKET_SPRAY_MIST = 0x2,
+        ROCKET_SPRAY_DROPS = 0x3,
+        BURNING_SMOKE = 0x6,
+        GROUND_SHARP_SHOCK = 0x7,
+        STARS = 0xC,
+        SPARKLE = 0xE,
+        WATER_RECHARGE = 0xF,
+        GROUND_SHOCK = 0x10,
+        GROUND_SMOKE_PLUME = 0x11,
+        WARP_IN_BODY_PIECES = 0x24,
+        WARP_IN_BELT_PIECES = 0x25,
+        WARP_IN_HAT_PIECES = 0x26,
+        WARP_IN_RED_PIECES = 0x27,
+        WARP_IN_BLUE_PIECES = 0x29,
+        WARP_IN_BROWN_PIECES = 0x2A,
+        WARP_IN_FLUDD_PIECES = 0x2D,
+        WATER_RIPPLE = 0x30
+    };
+
+    virtual ~TMario() = 0;
+    virtual u32 getType() = 0;
+    virtual void load(JSUInputStream &stream) = 0;
+    virtual void save(JSUOutputStream &stream) = 0;
+    virtual void loadAfter() = 0;
+    virtual void searchF(u32 unk1, u32 unk2) = 0;
+    virtual void perform(JDrama::TGraphics *graphics) = 0;
+
     u32 _00[0xC / 4];                 //0x0070
-    u32 mState;                       //0x007C
-    u32 mPrevState;                   //0x0080
+    STATE mState;                     //0x007C
+    STATE mPrevState;                 //0x0080
     u16 mSubState;                    //0x0084
     u16 mSubStateTimer;               //0x0086
     u32 _01;                          //0x0088
@@ -1110,53 +1228,14 @@ public:
     float mFloorBelow;                //0x00EC
     float mWaterHeight;               //0x00F0
     u32 _07[0x24 / 4];                //0x00F4
-
-    struct
-    {
-        u32 _04 : 10;
-        bool mIsGone : 1;
-        bool mIsShineShirt : 1;
-        u32 _03 : 2;
-        bool mIsWater : 1;
-        bool mIsShallowWater : 1;
-        bool mHasFludd : 1;
-        u32 _02 : 1;
-        bool mGainHelmet : 1;
-        bool mGainHelmetFlwCamera : 1;
-        bool mIsGroundPoundSitUp : 1;
-        bool mIsGameOver : 1;
-        u32 _01 : 5;
-        bool mLeftRecentWater : 1;
-        bool mTalkingNPC : 1;
-        bool mIsVisible : 1;
-        bool mAboveSewerFloor : 1;
-        u32 _00 : 1;
-    } mAttributes; //0x0118
-
-    struct
-    {
-        u32 _03 : 14;
-        bool mIsWater : 1;
-        bool mIsShallowWater : 1;
-        bool mHasFludd : 1;
-        u32 _02 : 2;
-        bool mGainHelmet : 1;
-        bool mIsGroundPoundSitUp : 1;
-        bool mIsTooBad : 1;
-        u32 _01 : 5;
-        bool mLeftRecentWater : 1;
-        bool mTalkingNPC : 1;
-        bool mIsVisible : 1;
-        bool mAboveSewerFloor : 1;
-        u32 _00 : 1;
-    } mPrevAttributes; //0x011C
-
-    u16 mHealth;           //0x0120
-    u16 _08;               //0x0122
-    u32 _09[0x8 / 4];      //0x0124
-    float mWaterHealth;    //0x012C
-    float mMaxWaterHealth; //0x0130
-    u32 _09aa[0x14 / 4];   //0x0134
+    STATUS mAttributes;               //0x0118
+    STATUS mPrevAttributes;           //0x011C
+    u16 mHealth;                      //0x0120
+    u16 _08;                          //0x0122
+    u32 _09[0x8 / 4];                 //0x0124
+    float mWaterHealth;               //0x012C
+    float mMaxWaterHealth;            //0x0130
+    u32 _09aa[0x14 / 4];              //0x0134
 
     struct
     {
@@ -1191,58 +1270,64 @@ public:
         u8 mBoneID[12]; //0x03C4
     } BindToBoneArray;
 
-    u32 _14c[0x10 / 4];            //0x03D0
-    TMarioCap *mCap;               //0x03E0
-    TWaterGun *mFludd;             //0x03E4
-    u32 _15[0x8 / 4];              //0x03E8
-    TYoshi *mYoshi;                //0x03F0
-    u32 _16[0x108 / 4];            //0x03F4
-    TMarioGamePad *mController;    //0x04FC
-    u32 _17[0x8C / 4];             //0x0500
-    u16 mMaxHealth;                //0x058C
-    u16 _18;                       //0x058E
-    u32 _19[0x10 / 4];             //0x0590
-    float mMaxGroundSpeed;         //0x05A0
-    u32 _19a[0x22C / 4];           //0x05A4
-    float mBaseBounceSpeed1;       //0x07D0
-    u32 _20[0x10 / 4];             //0x07D4
-    float mBaseBounceSpeed2;       //0x07E4
-    u32 _21[0x10 / 4];             //0x07E8
-    float mBaseBounceSpeed3;       //0x07F8
-    u32 _22[0xC4 / 4];             //0x07FC
-    float mMaxFallNoDamage;        //0x08C0
-    u32 _23[0xC4 / 4];             //0x08C4
-    u16 mOBStep;                   //0x0988
-    u16 _24;                       //0x098A
-    u32 _25[0x10 / 4];             //0x098C
-    u16 mOBMax;                    //0x099C
-    u16 _26;                       //0x099E
-    u32 _27[0x178 / 4];            //0x09A0
-    float mGravity;                //0x0B18
-    u32 _28[0x38 / 4];             //0x0B1C
-    float mAirborneHSpeedMul;      //0x0B54
-    u32 _29[0x10 / 4];             //0x0B58
-    float mDefaultAccelerationMul; //0x0B68
-    u32 _30[0x8A8 / 4];            //0x0B6C
-    float mTRopeAirborneAccelMul;  //0x1414
-    u32 _31[0xE04 / 4];            //0x1418
-    float mVSpeedYoshiMul;         //0x221C
-    u32 _32[0x4C / 4];             //0x2220
-    float mFSpeedFlutterMul;       //0x226C
-    u32 _33[0x10 / 4];             //0x2270
-    float mBSpeedFlutterMul;       //0x2280
-    u32 _34[0x200C / 4];           //0x2284
-    float mAllSpeedMultiplier;     //0x4290
-    u8 mMaxJumps;                  //0x4294
-    u8 mCurJump;                   //0x4295
-    u8 mPlayerID;                  //0x4296
-    bool mCanRideYoshi;            //0x4297
-    bool mCanHaveFludd;            //0x4298
-    float mBaseJumpMulti;          //0x429C
-    float mExJumpMulti;            //0x42A0
-    float mFSpeedMultiplier;       //0x42A4
-    float mExJumpFSpeedMulti;      //0x42A8
-    u32 _35[0x154 / 4];            //0x42AC
+    u32 _14c[0x10 / 4];              //0x03D0
+    TMarioCap *mCap;                 //0x03E0
+    TWaterGun *mFludd;               //0x03E4
+    u32 _15[0x8 / 4];                //0x03E8
+    TYoshi *mYoshi;                  //0x03F0
+    u32 _16[0x108 / 4];              //0x03F4
+    TMarioGamePad *mController;      //0x04FC
+    u32 _17[0x8C / 4];               //0x0500
+    u16 mMaxHealth;                  //0x058C
+    u16 _18;                         //0x058E
+    u32 _19[0x10 / 4];               //0x0590
+    float mMaxGroundSpeed;           //0x05A0
+    u32 _19a[0x22C / 4];             //0x05A4
+    float mBaseBounceSpeed1;         //0x07D0
+    u32 _20[0x10 / 4];               //0x07D4
+    float mBaseBounceSpeed2;         //0x07E4
+    u32 _21[0x10 / 4];               //0x07E8
+    float mBaseBounceSpeed3;         //0x07F8
+    u32 _22[0xC4 / 4];               //0x07FC
+    float mMaxFallNoDamage;          //0x08C0
+    u32 _23[0xC4 / 4];               //0x08C4
+    u16 mOBStep;                     //0x0988
+    u16 _24;                         //0x098A
+    u32 _25[0x10 / 4];               //0x098C
+    u16 mOBMax;                      //0x099C
+    u16 _26;                         //0x099E
+    u32 _27[0x178 / 4];              //0x09A0
+    float mGravity;                  //0x0B18
+    u32 _28[0x38 / 4];               //0x0B1C
+    float mAirborneHSpeedMul;        //0x0B54
+    u32 _29[0x10 / 4];               //0x0B58
+    float mDefaultAccelerationMul;   //0x0B68
+    u32 _30[0x700 / 4];              //0x0B6C
+    float mWaterHealthDrainSpd;      //0x126C
+    u32 _31[0x10 / 4];               //0x1270
+    float mWaterHealthScubaDrainSpd; //0x1280
+    u32 _32[0x10 / 4];               //0x1284
+    float mWaterHealthIncreaseSpd;   //0x1294
+    u32 _33[0x17C / 4];              //0x1298
+    float mTRopeAirborneAccelMul;    //0x1414
+    u32 _34[0xE04 / 4];              //0x1418
+    float mVSpeedYoshiMul;           //0x221C
+    u32 _35[0x4C / 4];               //0x2220
+    float mFSpeedFlutterMul;         //0x226C
+    u32 _36[0x10 / 4];               //0x2270
+    float mBSpeedFlutterMul;         //0x2280
+    u32 _37[0x200C / 4];             //0x2284
+    float mAllSpeedMultiplier;       //0x4290
+    u8 mMaxJumps;                    //0x4294
+    u8 mCurJump;                     //0x4295
+    u8 mPlayerID;                    //0x4296
+    bool mCanRideYoshi;              //0x4297
+    bool mCanHaveFludd;              //0x4298
+    float mBaseJumpMulti;            //0x429C
+    float mExJumpMulti;              //0x42A0
+    float mFSpeedMultiplier;         //0x42A4
+    float mExJumpFSpeedMulti;        //0x42A8
+    u32 _38[0x154 / 4];              //0x42AC
 
     struct
     {
@@ -1252,31 +1337,44 @@ public:
     } /*__attribute__((packed))*/ CollisionValues;
 };
 
-class TShine
+class TShine : public TMapObjBase
 {
 
 public:
-    TMapObjBase mObj;      //0x0000
-    u32 mObjectID;         //0x0134
-    u32 _09a[0x1C / 4];    //0x0138
-    u32 mType;             //0x0154
-    u32 _09b[0x50 / 4];    //0x0158
-    Vec3<float> mGlowSize; //0x01A8
-    u8 isAlreadyObtained;  //0x01B4
-    u8 _10;                //0x01B5
-    u16 _11;               //0x01B6
-    u32 _12[0x40 / 4];     //0x01B8
+    u32 mObjectID;                     //0x0134
+    u32 _09a[0x1C / 4];                //0x0138
+    u32 mType;                         //0x0154
+    u32 _09b[0x50 / 4];                //0x0158
+    JGeometry::TVec3<float> mGlowSize; //0x01A8
+    u8 isAlreadyObtained;              //0x01B4
+    u8 _10;                            //0x01B5
+    u16 _11;                           //0x01B6
+    u32 _12[0x40 / 4];                 //0x01B8
 };
 
 class TMarDirector
 {
 
 public:
+    enum STATUS : u8
+    {
+        INTRO_INIT = 0,
+        INTRO_PLAYING = 1,
+        NORMAL = 4,
+        PAUSE_MENU = 5,
+        SAVE_CARD = 11
+    };
+
+    enum STATE : u16
+    {
+        WARP_OUT = 2
+    };
+
     u32 _00[0x4C / 4];       //0x0000
-    u16 mGameState;          //0x004C
+    STATE mGameState;        //0x004C
     u16 _02;                 //0x004E
     u32 _03[0x14 / 4];       //0x0050
-    u8 mLastState;           //0x0064
+    STATUS mLastState;       //0x0064
     u8 _04;                  //0x0065
     u16 _05;                 //0x0066
     u32 _06[0xC / 4];        //0x0068
@@ -1288,7 +1386,7 @@ public:
     u32 _10[0x2C / 4];       //0x0080
     u32 *sNextState;         //0x00AC
     u32 _11;                 //0x00B0
-    u8 mNextState;           //0x00B4
+    STATUS mNextState;       //0x00B4
     u32 _12[0x1C / 4];       //0x00B8
     u32 *mGame6Data;         //0x00D4
     u32 *mAramArchive;       //0x00D8
@@ -1304,7 +1402,54 @@ class TGameSequence
 {
 
 public:
-    u8 mAreaID;
+    enum class AREA : u32
+    {
+        AIRPORT = 0x0,
+        DOLPIC = 0x1,
+        BIANCO = 0x2,
+        RICCO = 0x3,
+        MAMMA = 0x4,
+        PINNABEACH = 0x5,
+        SIRENA = 0x6,
+        DELFINO = 0x7,
+        MONTE = 0x8,
+        MARE = 0x9,
+        NONE = 0xA,
+        SCALE = 0xB,
+        TEST10 = 0xC,
+        PINNAPARCO = 0xD,
+        CASINO = 0xE,
+        OPTION = 0xF,
+        MAREUNDERSEA = 0x10,
+        DOLPICEX0 = 0x14,
+        DOLPICEX1 = 0x15,
+        DOLPICEX2 = 0x16,
+        DOLPICEX3 = 0x17,
+        DOLPICEX4 = 0x18,
+        BIANCOEX1 = 0x1D,
+        RICOEX0 = 0x1E,
+        RICOEX1 = 0x1F,
+        MAMMAEX0 = 0x20,
+        MAMMAEX1 = 0x21,
+        SIRENAEX0 = 0x28,
+        SIRENAEX1 = 0x29,
+        MONTEEX0 = 0x2A,
+        MAREEX0 = 0x2C,
+        COROEX0 = 0x2E,
+        COROEX1 = 0x2F,
+        COROEX2 = 0x30,
+        COROEX4 = 0x32,
+        COROEX5 = 0x33,
+        COROEX6 = 0x34,
+        BIANCOBOSS = 0x37,
+        DELFINOBOSS = 0x38,
+        MAREBOSS = 0x39,
+        PINNABOSS = 0x3A,
+        RICCOBOSS = 0x3B,
+        CORONABOSS = 0x3C
+    };
+
+    AREA mAreaID;
     u8 mEpisodeID;
     u16 _00;
 };
@@ -1409,7 +1554,7 @@ public:
         JGeometry::TVec3<float> mCoordinates; //0x0020
         float mSize;                          //0x002C
         float mStep;                          //0x0030
-        RGBA mColor;                          //0x0034
+        RGBA<u8> mColor;                      //0x0034
         u8 mLayerCount;                       //0x0038
         u8 mDarkLevel;                        //0x0039
         u16 _00;                              //0x003A
@@ -1433,10 +1578,10 @@ public:
     struct
     {
         s32 mMaxJuice;              //0x0060
-        RGBA mGreenYoshi;           //0x0064
-        RGBA mOrangeYoshi;          //0x0068
-        RGBA mPurpleYoshi;          //0x006C
-        RGBA mPinkYoshi;            //0x0070
+        RGBA<u8> mGreenYoshi;       //0x0064
+        RGBA<u8> mOrangeYoshi;      //0x0068
+        RGBA<u8> mPurpleYoshi;      //0x006C
+        RGBA<u8> mPinkYoshi;        //0x0070
         float mMaxVSpdStartFlutter; //0x0074
         float mFlutterAcceleration; //0x0078
         u16 mMaxFlutterTimer;       //0x007C
@@ -1459,7 +1604,7 @@ public:
     {
         TWaterGun::NOZZLETYPE mPrimaryNozzle;   //0x0091
         TWaterGun::NOZZLETYPE mSecondaryNozzle; //0x0092
-        RGBA mWaterColor;                       //0x0093
+        RGBA<u8> mWaterColor;                   //0x0093
         bool mIsColorWater;                     //0x0097
     } /*__attribute__((packed))*/ Fludd;
 
@@ -1538,7 +1683,7 @@ class MarioParamsFile
 {
 
 public:
-    enum FluddCleanType : u32
+    enum FluddCleanType : u8
     {
         NONE,
         CLEAN,
@@ -1572,7 +1717,7 @@ public:
         struct
         {
             bool mCanUseNozzle[8];        //0x0040
-            RGBA mWaterColor;             //0x0048
+            RGBA<u8> mWaterColor;         //0x0048
             FluddCleanType mCleaningType; //0x004C
             bool mBindToJointID[8];       //0x0050
             bool mCanCleanSeals;          //0x0058
@@ -1580,14 +1725,12 @@ public:
             u16 _01;                      //0x005A
         } FluddAttrs;
 
-        bool mCanBreatheUnderWater; //0x005C
-        u8 _02;                     //0x005D
-        u16 _03;                    //0x005E
-        u32 padding[16];            //0x0060
+        float mWaterHealthMultiplier; //0x005C
+        u32 padding[16];              //0x0060
 
     } /*__attribute__((packed))*/ Attributes;
 
-    char mCharacterName[];          //0x00A0
+    char mCharacterName[]; //0x00A0
 };
 
 class Vector3D
@@ -1702,6 +1845,8 @@ inline u32 branchToAddr(u32 *bAddr)
 / b = steepness
 / c = x offset
 / f = floor (min value)
+/
+/ Graphing Calculator: https://www.desmos.com/calculator/kn9tpwdan5
 */
 float sigmoidCurve(float x, float f, float r, float c, float b)
 {
@@ -1793,17 +1938,17 @@ struct CustomInfo
 
     struct
     {
-        Vec3<float> yoshiWaterSpeed; //0x0024
+        JGeometry::TVec3<float> yoshiWaterSpeed; //0x0024
     } /*__attribute__((packed))*/ Mario;
 
     struct
     {
         TWaterGun::NOZZLETYPE mCurrentNozzle; //0x0030
         TWaterGun::NOZZLETYPE mSecondNozzle;  //0x0031
-        u16 _00;           //0x0032
-        s32 mCurrentWater; //0x0034
-        bool mHadFludd;    //0x0038
-        u8 _01;            //0x0039
+        u16 _00;                              //0x0032
+        s32 mCurrentWater;                    //0x0034
+        bool mHadFludd;                       //0x0038
+        u8 _01;                               //0x0039
     } /*__attribute__((packed))*/ Fludd;
 
     struct

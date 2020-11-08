@@ -304,19 +304,18 @@ void initMario(TMario *gpMario)
 {
     SMEFile *file = gInfo.mFile;
 
-    gpMario->mMaxJumps = 1;
-    gpMario->mPlayerID = gInfo.PlayerData.mCurPlayerID[0];
-    gpMario->mCanRideYoshi = true;
-    gpMario->mCanHaveFludd = true;
-    gpMario->mBaseJumpMulti = 1.0;
-    gpMario->mExJumpMulti = 1.0;
-    gpMario->mExJumpFSpeedMulti = 1.0;
-    gpMario->mFSpeedMultiplier = 1.0;
-
     if (file && file->FileHeader.mIsMario)
     {
-        gpMario->mPlayerID = file->FileHeader.mPlayerID;
-        gInfo.PlayerData.mCurPlayerID[0] = file->FileHeader.mPlayerID;
+        if (isMario__6TMarioFv(gpMario))
+        {
+            gpMario->mPlayerID = file->FileHeader.mPlayerID;
+            gInfo.PlayerData.mCurPlayerID[0] = file->FileHeader.mPlayerID;
+
+            if (file->FileHeader.MarioStates.mMarioHasGlasses)
+            {
+                wearGlass__6TMarioFv(gpMario);
+            }
+        }
 
         gpMario->mGravity = file->Mario.mGravity;
         gpMario->mBaseBounceSpeed1 = file->Mario.mBaseBounce1;
@@ -331,15 +330,26 @@ void initMario(TMario *gpMario)
         gpMario->mAttributes.mGainHelmet = file->FileHeader.MarioStates.mMarioHasHelmet;
         gpMario->mAttributes.mHasFludd = file->FileHeader.MarioStates.mMarioHasFludd;
         gpMario->mAttributes.mIsShineShirt = file->FileHeader.MarioStates.mMarioHasShirt;
-
-        if (file->FileHeader.MarioStates.mMarioHasGlasses)
+    }
+    else
+    {
+        if (isMario__6TMarioFv(gpMario))
         {
-            wearGlass__6TMarioFv(gpMario);
+            gpMario->mMaxJumps = 1;
+            gpMario->mPlayerID = gInfo.PlayerData.mCurPlayerID[0];
+            gpMario->mCanRideYoshi = true;
+            gpMario->mCanHaveFludd = true;
+            gpMario->mBaseJumpMulti = 1.0;
+            gpMario->mExJumpMulti = 1.0;
+            gpMario->mExJumpFSpeedMulti = 1.0;
+            gpMario->mFSpeedMultiplier = 1.0;
         }
     }
 
-    MarioParamsFile *paramsFile = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc("mario"),
-                                                                                   "/params.bin");
+    if (!isMario__6TMarioFv(gpMario)) return;
+
+    MarioParamsFile *paramsFile = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc(0x804165A0), //mario
+                                                                                   0x800049F5); ///params.bin
 
     gInfo.mCharacterFile = paramsFile;
 
@@ -351,6 +361,8 @@ void initMario(TMario *gpMario)
         gpMario->mMaxFallNoDamage *= paramsFile->Attributes.mMaxFallNoDamageMulti;
         gpMario->mMaxJumps = paramsFile->Attributes.mJumpCount;
 
+        gpMario->mWaterHealthDrainSpd /= paramsFile->Attributes.mWaterHealthMultiplier;
+        gpMario->mWaterHealthScubaDrainSpd /= paramsFile->Attributes.mWaterHealthMultiplier;
         gpMario->mBaseBounceSpeed1 *= paramsFile->Attributes.mBaseBounce1Multi;
         gpMario->mBaseBounceSpeed2 *= paramsFile->Attributes.mBaseBounce2Multi;
         gpMario->mBaseBounceSpeed3 *= paramsFile->Attributes.mBaseBounce3Multi;

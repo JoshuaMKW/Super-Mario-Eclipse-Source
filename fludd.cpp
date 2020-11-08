@@ -1,9 +1,9 @@
 #include "includes/eclipse.hxx"
 
 //0x8026A164
-u32 canChangeNozzle(TWaterGun* gpFludd, u32 nozzle, bool normalize) {
+TWaterGun::NOZZLETYPE changeNozzleIfSet(TWaterGun* gpFludd, TWaterGun::NOZZLETYPE nozzle, bool normalize) {
     if (gInfo.mCharacterFile && gpFludd->mMario->mCanHaveFludd) {
-        if (!gInfo.mCharacterFile->Attributes.FluddAttrs.mCanUseNozzle[nozzle]) {
+        if (!gInfo.mCharacterFile->Attributes.FluddAttrs.mCanUseNozzle[(u8)nozzle]) {
             nozzle = gpFludd->mCurrentNozzle;
         }
     } 
@@ -65,7 +65,7 @@ void bindFluddtojoint(TWaterGun* gpFludd, u32* joint) {
     u32 index;
 
     if (localfile) {
-        index = localfile->Attributes.FluddAttrs.mBindToJointID[gpFludd->mCurrentNozzle] * 0x30;
+        index = localfile->Attributes.FluddAttrs.mBindToJointID[(u8)gpFludd->mCurrentNozzle] * 0x30;
         jointlist = gpFludd->mMario->mModelData->mJointList;
         joint = (u32*)(jointlist[0x58 / 4] + index);
     }

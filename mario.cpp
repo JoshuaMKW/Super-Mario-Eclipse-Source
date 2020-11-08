@@ -94,89 +94,8 @@ pass:
 0x8
 */
 
-//kWrite32(0x80276C94, 0x4180FF58);
-
-//0x80
-/*void loopAndUpdatePlayers() {
-    for (u32 i = 0; i < gInfo.PlayerData.mMaxPlayerCount; ++i) {
-        if (gInfo.PlayerData.mMario == nullptr) {
-            continue;
-        }
-        if (gInfo.PlayerData.mIsActive[i] == false) {
-            if (gInfo.PlayerData.mMario[i]->mController->Buttons.mSButton) {
-                gInfo.PlayerData.mIsActive[i] = true;
-            }
-        } else {
-            u8 prevPlayerID = gInfo.PlayerData.mCurPlayerID[i];
-
-            if (gInfo.PlayerData.mMario[i]->mController->Buttons.mDPadRight == false &&
-                gInfo.PlayerData.mMario[i]->mController->Buttons.mDPadLeft == false) {
-                gInfo.PlayerData.mCurPlayerTimer[i] = 0;
-            }
-            if (gInfo.PlayerData.mMario[i]->mController->Buttons.mDPadRight == true) {
-                if (gInfo.PlayerData.mCurPlayerTimer[i] == 0) {
-                    gInfo.PlayerData.mCurPlayerID[i] += 1;
-                    if (gInfo.PlayerData.mCurPlayerID[i] > 8) {
-                        gInfo.PlayerData.mCurPlayerID[i] = 0;
-                    }
-                    gInfo.PlayerData.mCurPlayerTimer[i] = gInfo.PlayerData.mMaxPlayerTimer;
-                } else {
-                    gInfo.PlayerData.mCurPlayerTimer[i] -= 1;
-                }
-            } else if (gInfo.PlayerData.mMario[i]->mController->Buttons.mDPadLeft == true) {
-                if (gInfo.PlayerData.mCurPlayerTimer[i] == 0) {
-                    gInfo.PlayerData.mCurPlayerID[i] -= 1;
-                    if (gInfo.PlayerData.mCurPlayerID[i] < 0) {
-                        gInfo.PlayerData.mCurPlayerID[i] = 8;
-                    }
-                    gInfo.PlayerData.mCurPlayerTimer[i] = gInfo.PlayerData.mMaxPlayerTimer;
-                } else {
-                    gInfo.PlayerData.mCurPlayerTimer[i] -= 1;
-                }
-            }
-
-            if (gInfo.PlayerData.mCurPlayerID[i] != prevPlayerID) {
-                initModel__6TMarioFv(gInfo.PlayerData.mMario[i]);
-                initMirrorModel__6TMarioFv(gInfo.PlayerData.mMario[i]);
-            }
-            
-            *(u32*)TMarioInstance = (u32)gInfo.PlayerData.mMario[i];
-            SMS_SetMarioAccessParams__Fv();
-        }
-    }
-}*/
-
 //0x8024D2C4
 TMario* updateMario(TMario* gpMario) {
-    u32 i = 0;
-    u8 prevPlayerID = gInfo.PlayerData.mCurPlayerID[i];
-
-    if (gpMario->mController->Buttons.mDPadRight == false &&
-        gpMario->mController->Buttons.mDPadLeft == false) {
-        gInfo.PlayerData.mCurPlayerTimer[i] = 0;
-    }
-    if (gpMario->mController->Buttons.mDPadRight == true) {
-        if (gInfo.PlayerData.mCurPlayerTimer[i] == 0) {
-            gInfo.PlayerData.mCurPlayerID[i] += 1;
-            if (gInfo.PlayerData.mCurPlayerID[i] > 8) {
-                gInfo.PlayerData.mCurPlayerID[i] = 0;
-            }
-            gInfo.PlayerData.mCurPlayerTimer[i] = gInfo.PlayerData.mMaxPlayerTimer;
-        } else {
-            gInfo.PlayerData.mCurPlayerTimer[i] -= 1;
-        }
-    } else if (gpMario->mController->Buttons.mDPadLeft == true) {
-        if (gInfo.PlayerData.mCurPlayerTimer[i] == 0) {
-            gInfo.PlayerData.mCurPlayerID[i] -= 1;
-            if (gInfo.PlayerData.mCurPlayerID[i] < 0) {
-                gInfo.PlayerData.mCurPlayerID[i] = 8;
-            }
-            gInfo.PlayerData.mCurPlayerTimer[i] = gInfo.PlayerData.mMaxPlayerTimer;
-        } else {
-            gInfo.PlayerData.mCurPlayerTimer[i] -= 1;
-        }
-    }
-
     if (gInfo.PlayerData.mCurPlayerID[i] != prevPlayerID) {
         u32* marioVolumeData = (u32*)getVolume__13JKRFileLoaderFPCc("mario");
         u32* marioDataArray = (u32*)*(u32*)ARCBufferMario;
@@ -195,6 +114,8 @@ TMario* updateMario(TMario* gpMario) {
 
 //0x8024E02C
 void manageExtraJumps(TMario* gpMario) {
+    if (!isMario__6TMarioFv(gpMario)) return;
+
     if ((gpMario->mState & STATE_AIRBORN) == false || (gpMario->mState & 0x800000) || gpMario->mYoshi->mState == MOUNTED) {
         gpMario->mCurJump = 1;
     } else {
@@ -222,17 +143,15 @@ mr r31, r4
 lis r3, TMario@ha
 lwz r3, TMario@l (r3)
 cmpw r30, r3
+fmadds f0, f2, f1, f0
 bne notMario
 mr r3, r30
 fmr f3, f0
-lis r0, 0x8000
-ori r0, r0, 0x4A78
-mtctr r0
-bctrl
+__call r0, 0x80004A78
+fmr f0, f1
 notMario:
 mr r3, r30
 mr r4, r31
-fmr f0, f1
 lwz r31, 0x8 (sp)
 addi sp, sp, 0x10
 */
@@ -391,32 +310,7 @@ fmuls f0, f0, f2
 notMario:
 */
 
-struct JumpData
+void manageUnderwaterBreathing(TMario* gpMario)
 {
-    u32 mCurrentJump;
-    u32 mMaxJumps;
-};
 
-//0x8024E02C
-void manageExtraJumps(TMario* gpMario) {
-    if (!isMario__6TMarioFv(gpMario)) return;
-
-    JumpData *globalJumpData = (JumpData *)0x80003BD0;
-    if ((gpMario->mState & STATE_AIRBORN) == false || (gpMario->mState & 0x800000) || gpMario->mYoshi->mState == MOUNTED) {
-        globalJumpData->mCurrentJump = 1;
-    } else {
-        if (gpMario->mController->FrameButtons.mAButton &
-            globalJumpData->mCurrentJump < globalJumpData->mMaxJumps &
-            gpMario->mState != STATE_WALLSLIDE) {
-            if ((globalJumpData->mMaxJumps - globalJumpData->mCurrentJump) == 1) {
-                changePlayerJumping__6TMarioFUlUl(gpMario, STATE_TRIPLE_J, 0);
-            } else if ((gpMario->mState - STATE_JUMP) > 1) {
-                changePlayerJumping__6TMarioFUlUl(gpMario, STATE_JUMP, 0);
-            } else {
-                changePlayerJumping__6TMarioFUlUl(gpMario, gpMario->mState ^ 1, 0);
-            }
-            globalJumpData->mCurrentJump += 1;
-        }
-    }
-    stateMachine__6TMarioFv(gpMario);
 }
