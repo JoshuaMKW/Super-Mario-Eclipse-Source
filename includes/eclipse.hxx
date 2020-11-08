@@ -849,7 +849,6 @@ public:
     };
 
 private:
-
     virtual ~TMarioGamePad() = 0;
 
     u32 _00[0x14 / 4];         //0x0004
@@ -1281,7 +1280,9 @@ public:
     u32 _04[0x8 / 4];                 //0x009C
     JGeometry::TVec3<float> mSpeed;   //0x00A4
     float mForwardSpeed;              //0x00B0
-    u32 _05[0x2C / 4];                //0x00B4
+    u32 _05[0x14 / 4];                //0x00B4
+    CustomInfo *mCustomInfo;          //0x00C8
+    u32 _06[0x14 / 4];                //0x00CC
     TBGCheckData *mFloorTriangle;     //0x00E0
     TBGCheckData *mFloorTriangleCopy; //0x00E4
     float mCeilingAbove;              //0x00E8
