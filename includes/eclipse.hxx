@@ -1197,6 +1197,28 @@ public:
         WATER_RIPPLE = 0x30
     };
 
+    struct CustomInfo
+    {
+        MarioParamsFile *mParams; //0x0000
+        float mTerminalVelocity;  //0x0004
+
+        struct
+        {
+            bool mIsAirborn : 1;
+            bool mIsFaceUsed : 1;
+            bool mIsSpinBounce : 1;
+            bool mIsDisableInput : 1;
+            u16 _00 : 12;
+        } CollisionFlags; //0x0008
+
+        u16 mPrevCollision;  //0x000A
+        s32 mCollisionTimer; //0x000C
+        bool mCollisionUsed; //0x0010
+        u8 mMaxJumps;        //0x0011
+        u8 mCurJump;         //0x0012
+        u8 mPlayerID;        //0x0013
+    };
+
     virtual ~TMario() = 0;
     virtual u32 getType() = 0;
     virtual void load(JSUInputStream &stream) = 0;
@@ -1219,9 +1241,7 @@ public:
     u32 _04[0x8 / 4];                 //0x009C
     JGeometry::TVec3<float> mSpeed;   //0x00A4
     float mForwardSpeed;              //0x00B0
-    u32 _05[0x14 / 4];                //0x00B4
-    float mTerminalVelocity;          //0x00C8
-    u32 _06[0x14 / 4];                //0x00CC
+    u32 _05[0x2C / 4];                //0x00B4
     TBGCheckData *mFloorTriangle;     //0x00E0
     TBGCheckData *mFloorTriangleCopy; //0x00E4
     float mCeilingAbove;              //0x00E8
@@ -1235,106 +1255,70 @@ public:
     u32 _09[0x8 / 4];                 //0x0124
     float mWaterHealth;               //0x012C
     float mMaxWaterHealth;            //0x0130
-    u32 _09aa[0x14 / 4];              //0x0134
-
-    struct
-    {
-        bool mIsAirborn : 1;
-        bool mIsFaceUsed : 1;
-        bool mIsSpinBounce : 1;
-        bool mIsDisableInput : 1;
-        u16 _00 : 12;
-    } CollisionFlags; //0x0148
-
-    u16 mPrevCollision;          //0x014A
-    s16 mColHealthTimer;         //0x014C
-    u16 _09a;                    //0x014E
-    u32 _09b[0x148 / 4];         //0x0150
-    u32 mInitialWater;           //0x0298
-    u32 _10[0x10 / 4];           //0x029C
-    float lastGroundedHeight;    //0x02AC
-    u32 _11[0x8 / 4];            //0x02B0
-    u16 _12;                     //0x02B8
-    u16 mOBTimer;                //0x02BA
-    u32 _13[0xC8 / 4];           //0x02BC
-    TTakeActor *mGrabTarget;     //0x0384
-    u32 _14[0xC / 4];            //0x0388
-    J3DDrawBuffer *mDrawBufferA; //0x0394
-    J3DDrawBuffer *mDrawBufferB; //0x0398
-    u32 _14a[0xC / 4];           //0x039C
-    J3DModel *mModelData;        //0x03A8
-    u32 _14b[0x18 / 4];          //0x03AC
-
-    struct
-    {
-        u8 mBoneID[12]; //0x03C4
-    } BindToBoneArray;
-
-    u32 _14c[0x10 / 4];              //0x03D0
-    TMarioCap *mCap;                 //0x03E0
-    TWaterGun *mFludd;               //0x03E4
-    u32 _15[0x8 / 4];                //0x03E8
-    TYoshi *mYoshi;                  //0x03F0
-    u32 _16[0x108 / 4];              //0x03F4
-    TMarioGamePad *mController;      //0x04FC
-    u32 _17[0x8C / 4];               //0x0500
-    u16 mMaxHealth;                  //0x058C
-    u16 _18;                         //0x058E
-    u32 _19[0x10 / 4];               //0x0590
-    float mMaxGroundSpeed;           //0x05A0
-    u32 _19a[0x22C / 4];             //0x05A4
-    float mBaseBounceSpeed1;         //0x07D0
-    u32 _20[0x10 / 4];               //0x07D4
-    float mBaseBounceSpeed2;         //0x07E4
-    u32 _21[0x10 / 4];               //0x07E8
-    float mBaseBounceSpeed3;         //0x07F8
-    u32 _22[0xC4 / 4];               //0x07FC
-    float mMaxFallNoDamage;          //0x08C0
-    u32 _23[0xC4 / 4];               //0x08C4
-    u16 mOBStep;                     //0x0988
-    u16 _24;                         //0x098A
-    u32 _25[0x10 / 4];               //0x098C
-    u16 mOBMax;                      //0x099C
-    u16 _26;                         //0x099E
-    u32 _27[0x178 / 4];              //0x09A0
-    float mGravity;                  //0x0B18
-    u32 _28[0x38 / 4];               //0x0B1C
-    float mAirborneHSpeedMul;        //0x0B54
-    u32 _29[0x10 / 4];               //0x0B58
-    float mDefaultAccelerationMul;   //0x0B68
-    u32 _30[0x700 / 4];              //0x0B6C
-    float mWaterHealthDrainSpd;      //0x126C
-    u32 _31[0x10 / 4];               //0x1270
-    float mWaterHealthScubaDrainSpd; //0x1280
-    u32 _32[0x10 / 4];               //0x1284
-    float mWaterHealthIncreaseSpd;   //0x1294
-    u32 _33[0x17C / 4];              //0x1298
-    float mTRopeAirborneAccelMul;    //0x1414
-    u32 _34[0xE04 / 4];              //0x1418
-    float mVSpeedYoshiMul;           //0x221C
-    u32 _35[0x4C / 4];               //0x2220
-    float mFSpeedFlutterMul;         //0x226C
-    u32 _36[0x10 / 4];               //0x2270
-    float mBSpeedFlutterMul;         //0x2280
-    u32 _37[0x200C / 4];             //0x2284
-    float mAllSpeedMultiplier;       //0x4290
-    u8 mMaxJumps;                    //0x4294
-    u8 mCurJump;                     //0x4295
-    u8 mPlayerID;                    //0x4296
-    bool mCanRideYoshi;              //0x4297
-    bool mCanHaveFludd;              //0x4298
-    float mBaseJumpMulti;            //0x429C
-    float mExJumpMulti;              //0x42A0
-    float mFSpeedMultiplier;         //0x42A4
-    float mExJumpFSpeedMulti;        //0x42A8
-    u32 _38[0x154 / 4];              //0x42AC
-
-    struct
-    {
-        u32 mColTimer;           //0x4400
-        bool mCollisionTypeUsed; //0x4404
-
-    } /*__attribute__((packed))*/ CollisionValues;
+    u32 _09aa[0x164 / 4];             //0x0134
+    u32 mInitialWater;                //0x0298
+    u32 _10[0x10 / 4];                //0x029C
+    float mLastGroundedHeight;        //0x02AC
+    u32 _11[0x8 / 4];                 //0x02B0
+    u16 _12;                          //0x02B8
+    u16 mOBTimer;                     //0x02BA
+    u32 _13[0xC8 / 4];                //0x02BC
+    TTakeActor *mGrabTarget;          //0x0384
+    u32 _14[0xC / 4];                 //0x0388
+    J3DDrawBuffer *mDrawBufferA;      //0x0394
+    J3DDrawBuffer *mDrawBufferB;      //0x0398
+    u32 _14a[0xC / 4];                //0x039C
+    J3DModel *mModelData;             //0x03A8
+    u32 _14b[0x18 / 4];               //0x03AC
+    u8 mBindBoneIDArray[12];          //0x03C4
+    u32 _14c[0x10 / 4];               //0x03D0
+    TMarioCap *mCap;                  //0x03E0
+    TWaterGun *mFludd;                //0x03E4
+    u32 _15[0x8 / 4];                 //0x03E8
+    TYoshi *mYoshi;                   //0x03F0
+    u32 _16[0x108 / 4];               //0x03F4
+    TMarioGamePad *mController;       //0x04FC
+    u32 _17[0x8C / 4];                //0x0500
+    u16 mMaxHealth;                   //0x058C
+    u16 _18;                          //0x058E
+    u32 _19[0x10 / 4];                //0x0590
+    float mMaxGroundSpeed;            //0x05A0
+    u32 _19a[0x22C / 4];              //0x05A4
+    float mBaseBounceSpeed1;          //0x07D0
+    u32 _20[0x10 / 4];                //0x07D4
+    float mBaseBounceSpeed2;          //0x07E4
+    u32 _21[0x10 / 4];                //0x07E8
+    float mBaseBounceSpeed3;          //0x07F8
+    u32 _22[0xC4 / 4];                //0x07FC
+    float mMaxFallNoDamage;           //0x08C0
+    u32 _23[0xC4 / 4];                //0x08C4
+    u16 mOBStep;                      //0x0988
+    u16 _24;                          //0x098A
+    u32 _25[0x10 / 4];                //0x098C
+    u16 mOBMax;                       //0x099C
+    u16 _26;                          //0x099E
+    u32 _27[0x178 / 4];               //0x09A0
+    float mGravity;                   //0x0B18
+    u32 _28[0x38 / 4];                //0x0B1C
+    float mAirborneHSpeedMul;         //0x0B54
+    u32 _29[0x10 / 4];                //0x0B58
+    float mDefaultAccelerationMul;    //0x0B68
+    u32 _30[0x700 / 4];               //0x0B6C
+    float mWaterHealthDrainSpd;       //0x126C
+    u32 _31[0x10 / 4];                //0x1270
+    float mWaterHealthScubaDrainSpd;  //0x1280
+    u32 _32[0x10 / 4];                //0x1284
+    float mWaterHealthIncreaseSpd;    //0x1294
+    u32 _33[0x17C / 4];               //0x1298
+    float mTRopeAirborneAccelMul;     //0x1414
+    u32 _34[0xE04 / 4];               //0x1418
+    float mVSpeedYoshiMul;            //0x221C
+    u32 _35[0x4C / 4];                //0x2220
+    float mFSpeedFlutterMul;          //0x226C
+    u32 _36[0x10 / 4];                //0x2270
+    float mBSpeedFlutterMul;          //0x2280
+    u32 _37[0x200C / 4];              //0x2284
+    float mAllSpeedMultiplier;        //0x4290
 };
 
 class TShine : public TMapObjBase
