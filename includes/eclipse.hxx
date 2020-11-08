@@ -74,7 +74,7 @@ namespace JGeometry
         T x;
         T y;
         T z;
-    };
+    }
 
 }; // namespace JGeometry
 
