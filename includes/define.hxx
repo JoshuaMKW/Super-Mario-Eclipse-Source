@@ -2,11 +2,11 @@
 
 #include "funcs.hxx"
 
-#define malloc(size, alignment) __nwa__FUl(size, alignment)
-#define hmalloc(heap, size, alignment) __nwa__FUlP7JKRHeapi(size, heap, alignment)
-#define calloc(size, alignment) memset(__nwa__FUl(size, alignment), 0, size)
-#define hcalloc(heap, size, alignment) memset(__nwa__FUlP7JKRHeapi(size, heap, alignment), 0, size)
-#define free(pointer) __dla__FPv(pointer)
+#define malloc(size, alignment) __nw__FUl(size, alignment)
+#define hmalloc(heap, size, alignment) __nw__FUlP7JKRHeapi(size, heap, alignment)
+#define calloc(size, alignment) memset(__nw__FUl(size, alignment), 0, size)
+#define hcalloc(heap, size, alignment) memset(__nw__FUlP7JKRHeapi(size, heap, alignment), 0, size)
+#define free(pointer) __dl__FPv(pointer)
 #define angleToRadians ((float (*)(float angle))0x80003400)
 #define radiansToAngle ((float (*)(float angle))0x8000341C)
 #define sqrtf(input) powf(input, 0.5)

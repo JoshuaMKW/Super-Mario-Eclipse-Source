@@ -303,12 +303,13 @@ lwz r30, 0x38 (sp)
 void initMario(TMario *gpMario)
 {
     SMEFile *file = gInfo.mFile;
+    TMario::CustomInfo *custominfo = malloc(sizeof(TMario::CustomInfo), 32);
 
     if (file && file->FileHeader.mIsMario)
     {
         if (isMario__6TMarioFv(gpMario))
         {
-            gpMario->mPlayerID = file->FileHeader.mPlayerID;
+            gpMario->mCustomInfo->mPlayerID = file->FileHeader.mPlayerID;
             gInfo.PlayerData.mCurPlayerID[0] = file->FileHeader.mPlayerID;
 
             if (file->FileHeader.MarioStates.mMarioHasGlasses)
