@@ -1,6 +1,6 @@
 #pragma once
 
-#include <funcs.hxx>
+#include "funcs.hxx"
 
 #define malloc(size, alignment) __nw__FUl(size, alignment)
 #define hmalloc(heap, size, alignment) __nw__FUlP7JKRHeapi(size, heap, alignment)
