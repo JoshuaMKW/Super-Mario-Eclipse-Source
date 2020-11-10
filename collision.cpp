@@ -366,7 +366,8 @@ void warpToLinkedCol(TMario *gpMario)
                                                    gpMario->mCoordinates.z,
                                                    0.9375);
             gpCamera->mHorizontalAngle = getYAngleBetween<u16>(gpMario->mCoordinates,
-                                                               gpCamera->mCoordinates) * 182;
+                                                               gpCamera->mCoordinates) *
+                                         182;
         }
         else if (gpMario->mCustomInfo->mCollisionTimer > 80)
         {
@@ -412,7 +413,8 @@ void warpToLinkedColPreserve(TMario *gpMario, bool fluid)
                                                gpMario->mCoordinates.z,
                                                0.9375);
         gpCamera->mHorizontalAngle = getYAngleBetween<u16>(gpMario->mCoordinates,
-                                                           gpCamera->mCoordinates) * 182;
+                                                           gpCamera->mCoordinates) *
+                                     182;
 
         JGeometry::TVec3<float> colNormal = Vector3D::getNormal(linkedCol->mVertexA, linkedCol->mVertexB, linkedCol->mVertexC, false);
         JGeometry::TVec3<float> colUnit = Vector3D::getUnitVector(colNormal);

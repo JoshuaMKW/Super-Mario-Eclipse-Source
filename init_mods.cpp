@@ -65,13 +65,13 @@ void resetGlobalValues()
 //0x802998B4
 void initFileMods()
 {
-    u32 *marioVolumeData = (u32 *)getVolume__13JKRFileLoaderFPCc(0x804165A0); //"mario"
+    u32 *marioVolumeData = (u32 *)getVolume__13JKRFileLoaderFPCc(0x804165A0);        //"mario"
     u32 *params = (u32 *)getResource__10JKRArchiveFPCc(marioVolumeData, 0x80004A01); //"/params.szs"
 
     u32 *marioDataField;
     u32 *marioData;
     u32 *allocation;
-    
+
     char buffer[32];
 
     free(gInfo.mFile); //Free the file allocation
@@ -80,7 +80,8 @@ void initFileMods()
     char folder[] = "/data/scene/sme/";
     const char *stage = getStageName((TApplication *)TApplicationInstance);
 
-    if (!stage) return;
+    if (!stage)
+        return;
 
     SMEFile *file = SMEFile::loadFile(SMEFile::parseExtension(folder, stage, false));
 
@@ -97,7 +98,7 @@ void initFileMods()
         //Attempt to swap character data
 
         sprintf(buffer, (char *)0x803A4284, gInfo.mFile->FileHeader.mPlayerID); //"/data/chr%d.arc"
-        strcpy(strstr(buffer, (char *)0x8041678C), (char *)0x80416794); //".arc", ".szs"
+        strcpy(strstr(buffer, (char *)0x8041678C), (char *)0x80416794);         //".arc", ".szs"
 
         if (DVDConvertPathToEntrynum(buffer) >= 0)
         {
@@ -109,7 +110,6 @@ void initFileMods()
             __dt__13JKRMemArchiveFv(marioVolumeData);
             __ct__13JKRMemArchiveFPvUl15JKRMemBreakFlag(marioVolumeData, *(u32 *)ARCBufferMario, 0, 0);
         }
-
     }
 
     if (params)
@@ -174,9 +174,9 @@ void initShineShadow()
             gInfo.Light.mNextSize = file->Light.mSize;
             for (u32 i = 0; i < gpFlagManager->Type4Flag.mShineCount; ++i)
             {
-                gInfo.Light.mNextSize += (10000 / MAX_SHINES) + i*2;
+                gInfo.Light.mNextSize += (10000 / MAX_SHINES) + i * 2;
             }
-            gpWaterManager->mSphereStep = gpWaterManager->mSize/2;
+            gpWaterManager->mSphereStep = gpWaterManager->mSize / 2;
         }
         gInfo.Light.mShineShadowCoordinates = file->Light.mCoordinates;
     }
@@ -331,9 +331,7 @@ void initMario(TMario *gpMario)
     }
 
     gpMario->mCustomInfo->mParams = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc(0x804165A0), //mario
-                                                                                   0x800049F5); ///params.bin
-
-    
+                                                                                     0x800049F5);                                ///params.bin
 
     if (gpMario->mCustomInfo->mParams)
     {
@@ -474,7 +472,7 @@ void createUIHeap(u32 size, s32 alignment)
 //0x802A72A4
 u32 initHUDElements(char *filepath)
 {
-    TFlagManager *gpFlagManager = (TFlagManager *)*(u32*)TFlagManagerInstance;
+    TFlagManager *gpFlagManager = (TFlagManager *)*(u32 *)TFlagManagerInstance;
     char buffer[32];
     s32 entrynum;
 
@@ -516,14 +514,14 @@ u32 *switchHUDOnStageLoad(char *curArchive, u32 *gameUI)
         gpFlagManager->Type6Flag.CustomFlags.mHUDElement = 0;
 
     sprintf(buffer, (char *)0x803A42BC, gpFlagManager->Type6Flag.CustomFlags.mHUDElement); //"/data/game_%d.arc"
-    strcpy(strstr(buffer, (char *)0x8041678C), (char *)0x80416794); //".arc", ".szs"
+    strcpy(strstr(buffer, (char *)0x8041678C), (char *)0x80416794);                        //".arc", ".szs"
 
     if (DVDConvertPathToEntrynum(buffer) >= 0)
     {
         free(gpMarDirector->mGame6Data);
         *gameUI = loadToMainRAM__12JKRDvdRipperFPCcPUc15JKRExpandSwitchUlP7JKRHeapQ212JKRDvdRipper15EAllocDirectionUlPi(buffer, 0, 1, 0, gpMarDirector->mGame6Data, 1, 0, 0);
     }
-    
+
     return switchArchive(curArchive, gameUI);
 }
 

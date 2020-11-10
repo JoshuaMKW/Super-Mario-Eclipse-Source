@@ -378,7 +378,7 @@ bool manageLightSize()
 
             for (u32 i = 0; i < (gpFlagManager->Type4Flag.mShineCount - gInfo.Light.mPrevShineCount); ++i)
             {
-                gInfo.Light.mNextSize += (10000 / MAX_SHINES) + (gInfo.Light.mPrevShineCount+i)*2;
+                gInfo.Light.mNextSize += (10000 / MAX_SHINES) + (gInfo.Light.mPrevShineCount + i) * 2;
             }
 
             gInfo.Light.mSizeMorphing = true;
@@ -391,7 +391,7 @@ bool manageLightSize()
 
             for (u32 i = 0; i < (gInfo.Light.mPrevShineCount - gpFlagManager->Type4Flag.mShineCount); ++i)
             {
-                gInfo.Light.mPrevSize -= (10000 / MAX_SHINES) + (gInfo.Light.mPrevShineCount-i)*2;
+                gInfo.Light.mPrevSize -= (10000 / MAX_SHINES) + (gInfo.Light.mPrevShineCount - i) * 2;
             }
 
             gInfo.Light.mSizeMorphing = true;
@@ -417,13 +417,13 @@ bool manageLightSize()
             else if (cur != gInfo.Light.mNextSize && cur != gInfo.Light.mPrevSize)
             {
                 gpWaterManager->mSize = cur;
-                gpWaterManager->mSphereStep = cur/2;
+                gpWaterManager->mSphereStep = cur / 2;
                 gInfo.Light.mStepContext += 1;
             }
             else
             {
                 gpWaterManager->mSize = cur;
-                gpWaterManager->mSphereStep = cur/2;
+                gpWaterManager->mSphereStep = cur / 2;
                 gInfo.Light.mPrevShineCount = gpFlagManager->Type4Flag.mShineCount;
                 gInfo.Light.mSizeMorphing = false;
             }
@@ -525,11 +525,11 @@ void replaceFmtSpecifier(char *buffer, char *src, char *fmt, char *sample)
     u32 samplelen = strlen(sample);
     u32 fmtlen = strlen(fmt);
 
-    char* curFmtPos = strstr(buffer, fmt);
-    char* endstr = buffer + strlen(buffer);
+    char *curFmtPos = strstr(buffer, fmt);
+    char *endstr = buffer + strlen(buffer);
     while (curFmtPos != nullptr)
     {
-        memcpy(curFmtPos+samplelen, curFmtPos+fmtlen, strlen(curFmtPos+fmtlen));
+        memcpy(curFmtPos + samplelen, curFmtPos + fmtlen, strlen(curFmtPos + fmtlen));
 
         strncpy(curFmtPos, sample, samplelen);
 
@@ -556,8 +556,8 @@ void formatMessage(Talk2D2 *talker, char *msgfield, u32 *entrydata)
     char date[16];
     char time[16];
 
-    char* basemsg = msgfield + *entrydata + talker->curMsgIndex;
-    char* newmsg = msgbuffer - (*entrydata + talker->curMsgIndex);
+    char *basemsg = msgfield + *entrydata + talker->curMsgIndex;
+    char *newmsg = msgbuffer - (*entrydata + talker->curMsgIndex);
 
     OSTicksToCalendarTime(OSGetTime(), calendarTime);
 
@@ -568,13 +568,13 @@ void formatMessage(Talk2D2 *talker, char *msgfield, u32 *entrydata)
     else if (calendarTime->mHours == 12)
         sprintf(time, (char *)0x800048DF, calendarTime->mHours, calendarTime->mMinutes);
     else
-        sprintf(time, (char *)0x800048DF, (calendarTime->mHours+1) % 13, calendarTime->mMinutes);
+        sprintf(time, (char *)0x800048DF, (calendarTime->mHours + 1) % 13, calendarTime->mMinutes);
 
-    sprintf(date, (char *)0x800048F5, calendarTime->mMonth+1, calendarTime->mDayOfMonth, calendarTime->mYear);
+    sprintf(date, (char *)0x800048F5, calendarTime->mMonth + 1, calendarTime->mDayOfMonth, calendarTime->mYear);
 
     memset(msgbuffer, 0, sizeof(msgbuffer));
     strcpy(msgbuffer, basemsg);
-    
+
     //%
     memset(fmt, 0, sizeof(fmt));
     strcpy(fmt, (char *)0x803E780B);
