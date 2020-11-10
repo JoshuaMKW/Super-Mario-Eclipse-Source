@@ -2,7 +2,7 @@
 
 //0x8026A164
 TWaterGun::NOZZLETYPE changeNozzleIfSet(TWaterGun* gpFludd, TWaterGun::NOZZLETYPE nozzle, bool normalize) {
-    if (gInfo.mCharacterFile && gpFludd->mMario->mCanHaveFludd) {
+    if (gInfo.mCharacterFile && gpFludd->mMario->mCustomInfo->mParams->Attributes.mCanUseFludd) {
         if (!gInfo.mCharacterFile->Attributes.FluddAttrs.mCanUseNozzle[(u8)nozzle]) {
             nozzle = gpFludd->mCurrentNozzle;
         }
@@ -16,13 +16,13 @@ bool hasWaterCardOpen(TGCConsole2* gcConsole) {
     //mr r3, r31
     TMario* gpMario = (TMario*)*(u32*)TMarioInstance;
 
-    if (gpMario->mYoshi->mState != MOUNTED) {
-        gpMario->mAttributes.mHasFludd = gpMario->mCanHaveFludd;
+    if (gpMario->mYoshi->mState != TYoshi::STATE::MOUNTED) {
+        gpMario->mAttributes.mHasFludd = gpMario->mCustomInfo->mParams->Attributes.mCanUseFludd;
     } else {
         gpMario->mAttributes.mHasFludd = true;
     }
 
-    if (gpMario->mYoshi->mState != MOUNTED &&
+    if (gpMario->mYoshi->mState != TYoshi::STATE::MOUNTED &&
         gpMario->mAttributes.mHasFludd == false &&
         gcConsole->mWaterCardFalling == false &&
         gcConsole->mIsWaterCard == true) {
@@ -37,12 +37,20 @@ bool hasWaterCardOpen(TGCConsole2* gcConsole) {
 
 //0x80283058
 bool canCollectFluddItem(TMario* gpMario) {
-    return (onYoshi__6TMarioCFv(gpMario) || gpMario->mCanHaveFludd == false);
+    return (onYoshi__6TMarioCFv(gpMario) || !gpMario->mCustomInfo->mParams->Attributes.mCanUseFludd);
 }
 
 //0x8024E710
-void sprayGoopMap(TPollutionManager* gpPollutionManager, float x, float y, float z, float r) {
-    MarioParamsFile* localfile = gInfo.mCharacterFile;
+/*
+__push_stack r30, 0x20, TRUE
+mr r4, r30
+__call r0, 0x800050E0
+__pop_stack r30, 0x20, TRUE
+*/
+
+//0x800050E0
+void sprayGoopMap(TPollutionManager* gpPollutionManager, float x, float y, float z, float r, TMario *gpMario) {
+    MarioParamsFile* localfile = gpMario->mCustomInfo->mParams;
     if (localfile && localfile->Attributes.FluddAttrs.mCleaningType != localfile->NONE) {
         if (localfile->Attributes.FluddAttrs.mCleaningType == localfile->CLEAN) {
             clean__17TPollutionManagerFffff(gpPollutionManager, x, y, z, r);
@@ -60,7 +68,7 @@ bool canCleanSeals(TWaterManager* gpWaterManager) {
 
 //0x8024D560
 void bindFluddtojoint(TWaterGun* gpFludd, u32* joint) {
-    MarioParamsFile* localfile = gInfo.mCharacterFile;
+    MarioParamsFile* localfile = gpFludd->mMario->mCustomInfo->mParams;
     u32* jointlist;
     u32 index;
 

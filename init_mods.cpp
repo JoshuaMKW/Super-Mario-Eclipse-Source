@@ -18,13 +18,13 @@ u32 setupMarioDatas(char *filepath)
     TMarioGamePad *gpGamePad = gpApplication->mGamePad1;
     u32 id;
 
-    if (gpGamePad->Buttons.mDPadUp)
+    if (gpGamePad->getInput() == TMarioGamePad::BUTTONS::DPAD_UP)
         id = 1;
-    else if (gpGamePad->Buttons.mDPadDown)
+    else if (gpGamePad->getInput() == TMarioGamePad::BUTTONS::DPAD_DOWN)
         id = 2;
-    else if (gpGamePad->Buttons.mDPadLeft)
+    else if (gpGamePad->getInput() == TMarioGamePad::BUTTONS::DPAD_LEFT)
         id = 3;
-    else if (gpGamePad->Buttons.mDPadRight)
+    else if (gpGamePad->getInput() == TMarioGamePad::BUTTONS::DPAD_RIGHT)
         id = 4;
     else
         id = 0;
@@ -44,9 +44,9 @@ u32 *getPrivateHeap()
 
 void resetGlobalValues()
 {
-    RGBA *waterColor = (RGBA *)WaterAddr;
-    RGBA *juiceColor = (RGBA *)YoshiJuiceColor;
-    RGBA *yoshiColor = (RGBA *)YoshiColor;
+    RGBA<u8> *waterColor = (RGBA<u8> *)WaterAddr;
+    RGBA<u8> *juiceColor = (RGBA<u8> *)YoshiJuiceColor;
+    RGBA<u8> *yoshiColor = (RGBA<u8> *)YoshiColor;
 
     waterColor[0] = {0x3C, 0x46, 0x78, 0x14}; //Water rgba
     juiceColor[0] = {0xFE, 0xA8, 0x02, 0x6E}; //Yoshi Juice rgba
@@ -191,7 +191,7 @@ void initSoundBank(u8 areaID, u8 episodeID)
 {
     SMEFile *file = gInfo.mFile;
 
-    if (!file || gInfo.mFile->FileHeader.mIsMusic == false)
+    if (!file || !gInfo.mFile->FileHeader.mIsMusic)
     {
         setMSoundEnterStage__10MSMainProcFUcUc(areaID, episodeID);
     }
@@ -207,7 +207,7 @@ void initMusicTrack()
 {
     SMEFile *file = gInfo.mFile;
 
-    if (!file || gInfo.mFile->FileHeader.mIsMusic == false)
+    if (!file || !gInfo.mFile->FileHeader.mIsMusic)
     {
         startStageBGM__10MSMainProcFUcUc();
     }
@@ -240,7 +240,7 @@ void initFludd(TMario *gpMario)
 
     if (stagefile && stagefile->FileHeader.mIsFludd)
     {
-        if (stagefile->Fludd.mIsColorWater == true)
+        if (stagefile->Fludd.mIsColorWater)
         {
             waterColor = stagefile->Fludd.mWaterColor;
         }
@@ -260,7 +260,7 @@ void initFludd(TMario *gpMario)
                 if (localfile->Attributes.FluddAttrs.mCanUseNozzle[i])
                 {
                     gpMario->mFludd->mCurrentNozzle = (TWaterGun::NOZZLETYPE)i;
-                    if (gpMario->mCanHaveFludd)
+                    if (gpMario->mCustomInfo->mParams->Attributes.mCanUseFludd)
                         gpMario->mAttributes.mHasFludd = true;
                     gpMario->mFludd->mCurrentWater = gpMario->mFludd->mNozzleList[(u8)gpMario->mFludd->mCurrentNozzle]->mMaxWater;
                     break;
@@ -268,7 +268,7 @@ void initFludd(TMario *gpMario)
                 else if (i == 7)
                 {
                     gpMario->mAttributes.mHasFludd = false;
-                    gpMario->mCanHaveFludd = false;
+                    gpMario->mCustomInfo->mParams->Attributes.mCanUseFludd = false;
                 }
             }
         }
@@ -303,20 +303,12 @@ lwz r30, 0x38 (sp)
 void initMario(TMario *gpMario)
 {
     SMEFile *file = gInfo.mFile;
-    TMario::CustomInfo *custominfo = malloc(sizeof(TMario::CustomInfo), 32);
+    gpMario->mCustomInfo = (TMario::CustomInfo *)malloc(sizeof(TMario::CustomInfo), 32);
 
     if (file && file->FileHeader.mIsMario)
     {
-        if (isMario__6TMarioFv(gpMario))
-        {
-            gpMario->mCustomInfo->mPlayerID = file->FileHeader.mPlayerID;
-            gInfo.PlayerData.mCurPlayerID[0] = file->FileHeader.mPlayerID;
-
-            if (file->FileHeader.MarioStates.mMarioHasGlasses)
-            {
-                wearGlass__6TMarioFv(gpMario);
-            }
-        }
+        gpMario->mCustomInfo->mPlayerID = file->FileHeader.mPlayerID;
+        gInfo.PlayerData.mCurPlayerID[0] = file->FileHeader.mPlayerID;
 
         gpMario->mGravity = file->Mario.mGravity;
         gpMario->mBaseBounceSpeed1 = file->Mario.mBaseBounce1;
@@ -331,60 +323,41 @@ void initMario(TMario *gpMario)
         gpMario->mAttributes.mGainHelmet = file->FileHeader.MarioStates.mMarioHasHelmet;
         gpMario->mAttributes.mHasFludd = file->FileHeader.MarioStates.mMarioHasFludd;
         gpMario->mAttributes.mIsShineShirt = file->FileHeader.MarioStates.mMarioHasShirt;
-    }
-    else
-    {
-        if (isMario__6TMarioFv(gpMario))
+
+        if (file->FileHeader.MarioStates.mMarioHasGlasses)
         {
-            gpMario->mMaxJumps = 1;
-            gpMario->mPlayerID = gInfo.PlayerData.mCurPlayerID[0];
-            gpMario->mCanRideYoshi = true;
-            gpMario->mCanHaveFludd = true;
-            gpMario->mBaseJumpMulti = 1.0;
-            gpMario->mExJumpMulti = 1.0;
-            gpMario->mExJumpFSpeedMulti = 1.0;
-            gpMario->mFSpeedMultiplier = 1.0;
+            wearGlass__6TMarioFv(gpMario);
         }
     }
 
-    if (!isMario__6TMarioFv(gpMario)) return;
-
-    MarioParamsFile *paramsFile = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc(0x804165A0), //mario
+    gpMario->mCustomInfo->mParams = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc(0x804165A0), //mario
                                                                                    0x800049F5); ///params.bin
 
-    gInfo.mCharacterFile = paramsFile;
+    
 
-    if (paramsFile)
+    if (gpMario->mCustomInfo->mParams)
     {
 
-        gpMario->mGravity *= paramsFile->Attributes.mGravityMulti;
-        gpMario->mTerminalVelocity *= paramsFile->Attributes.mGravityMulti;
-        gpMario->mMaxFallNoDamage *= paramsFile->Attributes.mMaxFallNoDamageMulti;
-        gpMario->mMaxJumps = paramsFile->Attributes.mJumpCount;
+        gpMario->mGravity *= gpMario->mCustomInfo->mParams->Attributes.mGravityMulti;
+        gpMario->mCustomInfo->mTerminalVelocity *= gpMario->mCustomInfo->mParams->Attributes.mGravityMulti;
+        gpMario->mMaxFallNoDamage *= gpMario->mCustomInfo->mParams->Attributes.mMaxFallNoDamageMulti;
+        gpMario->mCustomInfo->mMaxJumps = gpMario->mCustomInfo->mParams->Attributes.mJumpCount;
 
-        gpMario->mWaterHealthDrainSpd /= paramsFile->Attributes.mWaterHealthMultiplier;
-        gpMario->mWaterHealthScubaDrainSpd /= paramsFile->Attributes.mWaterHealthMultiplier;
-        gpMario->mBaseBounceSpeed1 *= paramsFile->Attributes.mBaseBounce1Multi;
-        gpMario->mBaseBounceSpeed2 *= paramsFile->Attributes.mBaseBounce2Multi;
-        gpMario->mBaseBounceSpeed3 *= paramsFile->Attributes.mBaseBounce3Multi;
-        gpMario->mHealth = paramsFile->Attributes.mHealth;
-        gpMario->mMaxHealth = paramsFile->Attributes.mMaxHealth;
-        gpMario->mOBStep = paramsFile->Attributes.mOBStep;
-        gpMario->mOBMax = paramsFile->Attributes.mOBMax;
+        gpMario->mWaterHealthDrainSpd /= gpMario->mCustomInfo->mParams->Attributes.mWaterHealthMultiplier;
+        gpMario->mWaterHealthScubaDrainSpd /= gpMario->mCustomInfo->mParams->Attributes.mWaterHealthMultiplier;
+        gpMario->mBaseBounceSpeed1 *= gpMario->mCustomInfo->mParams->Attributes.mBaseBounce1Multi;
+        gpMario->mBaseBounceSpeed2 *= gpMario->mCustomInfo->mParams->Attributes.mBaseBounce2Multi;
+        gpMario->mBaseBounceSpeed3 *= gpMario->mCustomInfo->mParams->Attributes.mBaseBounce3Multi;
+        gpMario->mHealth = gpMario->mCustomInfo->mParams->Attributes.mHealth;
+        gpMario->mMaxHealth = gpMario->mCustomInfo->mParams->Attributes.mMaxHealth;
+        gpMario->mOBStep = gpMario->mCustomInfo->mParams->Attributes.mOBStep;
+        gpMario->mOBMax = gpMario->mCustomInfo->mParams->Attributes.mOBMax;
 
-        gpMario->mAttributes.mGainHelmet = paramsFile->Attributes.mMarioHasHelmet;
-        gpMario->mAttributes.mHasFludd = paramsFile->Attributes.mCanUseFludd;
-        gpMario->mAttributes.mIsShineShirt = paramsFile->Attributes.mMarioHasShirt;
+        gpMario->mAttributes.mGainHelmet = gpMario->mCustomInfo->mParams->Attributes.mMarioHasHelmet;
+        gpMario->mAttributes.mHasFludd = gpMario->mCustomInfo->mParams->Attributes.mCanUseFludd;
+        gpMario->mAttributes.mIsShineShirt = gpMario->mCustomInfo->mParams->Attributes.mMarioHasShirt;
 
-        gpMario->mCanRideYoshi = paramsFile->Attributes.mCanRideYoshi;
-        gpMario->mCanHaveFludd = paramsFile->Attributes.mCanUseFludd;
-
-        gpMario->mBaseJumpMulti = paramsFile->Attributes.mBaseJumpHeightMulti;
-        gpMario->mExJumpMulti = paramsFile->Attributes.mMultiJumpMultiplier;
-        gpMario->mExJumpFSpeedMulti = paramsFile->Attributes.mMultiJumpFSpeedMulti;
-        gpMario->mFSpeedMultiplier = paramsFile->Attributes.mSpeedMultiplier;
-
-        if (paramsFile->Attributes.mMarioHasGlasses)
+        if (gpMario->mCustomInfo->mParams->Attributes.mMarioHasGlasses)
         {
             wearGlass__6TMarioFv(gpMario);
         }
@@ -401,8 +374,8 @@ void initYoshi()
     if (!file || file->FileHeader.mIsYoshi == false)
         return;
 
-    RGBA *juiceColor = (RGBA *)YoshiJuiceColor;
-    RGBA *yoshiColor = (RGBA *)YoshiColor;
+    RGBA<u8> *juiceColor = (RGBA<u8> *)YoshiJuiceColor;
+    RGBA<u8> *yoshiColor = (RGBA<u8> *)YoshiColor;
 
     juiceColor[0] = file->Yoshi.mOrangeYoshi;
     juiceColor[1] = file->Yoshi.mPurpleYoshi;
@@ -537,9 +510,9 @@ u32 *switchHUDOnStageLoad(char *curArchive, u32 *gameUI)
 
     char buffer[32];
 
-    if (gpApplication->mGamePad1->Buttons.mDPadUp)
+    if (gpApplication->mGamePad1->isPressed(TMarioGamePad::BUTTONS::DPAD_UP))
         gpFlagManager->Type6Flag.CustomFlags.mHUDElement = 1;
-    else if (gpApplication->mGamePad1->Buttons.mDPadDown)
+    else if (gpApplication->mGamePad1->isPressed(TMarioGamePad::BUTTONS::DPAD_DOWN))
         gpFlagManager->Type6Flag.CustomFlags.mHUDElement = 0;
 
     sprintf(buffer, (char *)0x803A42BC, gpFlagManager->Type6Flag.CustomFlags.mHUDElement); //"/data/game_%d.arc"

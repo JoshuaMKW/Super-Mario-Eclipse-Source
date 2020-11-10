@@ -11,10 +11,10 @@ const char *getStageName(TApplication *gpApplication)
 
     u32 *AreaArrayStart = AreaPathArray->startArray;
 
-    if (!AreaArrayStart || (((u32)AreaPathArray->endArray - (u32)AreaArrayStart) >> 2) < gpApplication->mCurrentScene.mAreaID)
+    if (!AreaArrayStart || (((u32)AreaPathArray->endArray - (u32)AreaArrayStart) >> 2) < (u8)gpApplication->mCurrentScene.mAreaID)
         return nullptr;
 
-    AreaEpisodeArray *StagePathArray = (AreaEpisodeArray *)AreaArrayStart[gpApplication->mCurrentScene.mAreaID];
+    AreaEpisodeArray *StagePathArray = (AreaEpisodeArray *)AreaArrayStart[(u8)gpApplication->mCurrentScene.mAreaID];
     u32 *StageArrayStart = (u32 *)StagePathArray->startArray;
 
     if (!StageArrayStart || (((u32)StagePathArray->endArray - (u32)StageArrayStart) >> 4) < gpApplication->mCurrentScene.mEpisodeID)

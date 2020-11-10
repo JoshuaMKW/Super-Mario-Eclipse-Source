@@ -5,7 +5,6 @@
 TMarDirector *xyzModifierMario(TMarDirector *gpMarDirector)
 {
     TMario *gpMario = (TMario *)*(u32 *)TMarioInstance;
-    JGeometry::TVec3<float> *gpMarioCoordinates = (JGeometry::TVec3<float> *)&gpMario->mTakeActor.mHitActor.mActor.mCoordinates;
     if (!gpMario)
     {
         return gpMarDirector;
@@ -16,11 +15,11 @@ TMarDirector *xyzModifierMario(TMarDirector *gpMarDirector)
         return gpMarDirector;
     }
 
-    if (gpMario->mController->Buttons.mDPadRight && *(bool *)0x80003ED0 == false)
+    if (gpMario->mController->isPressed(TMarioGamePad::BUTTONS::DPAD_RIGHT) && *(bool *)0x80003ED0 == false)
     {
         *(bool *)0x80003ED0 = true;
     }
-    else if (gpMario->mController->Buttons.mDPadLeft && *(bool *)0x80003ED0 == true)
+    else if (gpMario->mController->isPressed(TMarioGamePad::BUTTONS::DPAD_RIGHT) && *(bool *)0x80003ED0 == true)
     {
         if (gpMario->mPrevState != 0x133F)
         {
@@ -28,31 +27,32 @@ TMarDirector *xyzModifierMario(TMarDirector *gpMarDirector)
         }
         else
         {
-            gpMario->mState = STATE_IDLE;
+            gpMario->mState = TMario::STATE::IDLE;
         }
         *(bool *)0x80003ED0 = false;
     }
 
     if (*(bool *)0x80003ED0 == true)
     {
-        gpMario->mState = STATE_IDLE | STATE_CUTSCENE;
-        float speedMultiplier = lerp<float>(1, 2, gpMario->mController->mRButtonAnalogFloat);
-        gpMarioCoordinates->x += ((gpMario->mController->mMainStickLeftRight * 83) * speedMultiplier);
-        gpMarioCoordinates->z -= ((gpMario->mController->mMainStickUpDown * 83) * speedMultiplier);
+        gpMario->mState = TMario::STATE::IDLE | TMario::STATE::CUTSCENE;
+        float speedMultiplier = lerp<float>(1, 2, gpMario->mController->getRAnalogf());
+        gpMario->mCoordinates.x += ((gpMario->mController->getMainStickAnalogX() * 83) * speedMultiplier);
+        gpMario->mCoordinates.z -= ((gpMario->mController->getMainStickAnalogY() * 83) * speedMultiplier);
 
-        if (gpMario->mController->Buttons.mDPadDown)
+        if (gpMario->mController->isPressed(TMarioGamePad::BUTTONS::DPAD_DOWN))
         {
-            gpMarioCoordinates->y -= (83 * speedMultiplier);
+            gpMario->mCoordinates.y -= (83 * speedMultiplier);
         }
-        else if (gpMario->mController->Buttons.mDPadUp)
+        else if (gpMario->mController->isPressed(TMarioGamePad::BUTTONS::DPAD_UP))
         {
-            gpMarioCoordinates->y += (83 * speedMultiplier);
+            gpMario->mCoordinates.y += (83 * speedMultiplier);
         }
     }
     return gpMarDirector;
 }
 
 //0x802A8064
+/*
 u32 set_debugger()
 {
     TMario *gpMario = (TMario *)*(u32 *)TMarioInstance;
@@ -100,6 +100,7 @@ u32 set_debugger()
     }
     return 0;
 }
+*/
 
 //0x80243940
 TMario *warpMario(TMario *gpMario)
@@ -119,7 +120,8 @@ bool SMS_IsExMap()
     }
     else
     {
-        return (gpApplication->mCurrentScene.mAreaID > 20 && gpApplication->mCurrentScene.mAreaID < 53);
+        return (gpApplication->mCurrentScene.mAreaID >= TGameSequence::AREA::DOLPICEX0 &&
+                gpApplication->mCurrentScene.mAreaID <= TGameSequence::AREA::COROEX6);
     }
 }
 
@@ -133,7 +135,7 @@ bool SMS_IsMultiplayerMap()
     }
     else
     {
-        return (gpMarDirector->mAreaID == 12 && gpMarDirector->mEpisodeID == 0);
+        return (gpMarDirector->mAreaID == TGameSequence::AREA::TEST10 && gpMarDirector->mEpisodeID == 0);
     }
 }
 
@@ -147,9 +149,9 @@ bool SMS_IsDivingMap()
     }
     else
     {
-        return (gpMarDirector->mAreaID == 57 ||
-                gpMarDirector->mAreaID == 44 ||
-                gpMarDirector->mAreaID == 16);
+        return (gpMarDirector->mAreaID == TGameSequence::AREA::MAREBOSS ||
+                gpMarDirector->mAreaID == TGameSequence::AREA::MAREEX0 ||
+                gpMarDirector->mAreaID == TGameSequence::AREA::MAREUNDERSEA);
     }
 }
 
@@ -173,29 +175,28 @@ void manageShineVanish(JGeometry::TVec3<float> *marioPos)
     TMarDirector *gpMarDirector = (TMarDirector *)*(u32 *)TMarDirectorInstance;
     TMario *gpMario = (TMario *)*(u32 *)TMarioInstance;
     TShine *gpShine = gpMarDirector->mCollectedShine;
-    JDrama::TActor shineData = gpShine->mObj.mLiveActor.mTakeActor.mHitActor.mActor;
 
-    if (shineData.mSize.x - 0.01055 <= 0)
+    if (gpShine->mSize.x - 0.01055 <= 0)
     {
-        shineData.mSize = {1, 1, 1};
+        gpShine->mSize = {1, 1, 1};
         gpShine->mGlowSize = {1, 1, 1};
-        shineData.mRotation.y = 0;
+        gpShine->mRotation.y = 0;
         makeObjDead__11TMapObjBaseFv(gpShine);
     }
-    else if (gpMario->mState != STATE_SHINE_C)
+    else if (gpMario->mState != TMario::STATE::SHINE_C)
     {
-        shineData.mCoordinates.y += 4;
-        shineData.mSize.x -= 0.01055;
-        shineData.mSize.y -= 0.01055;
-        shineData.mSize.z -= 0.01055;
+        gpShine->mCoordinates.y += 4;
+        gpShine->mSize.x -= 0.01055;
+        gpShine->mSize.y -= 0.01055;
+        gpShine->mSize.z -= 0.01055;
         gpShine->mGlowSize.x -= 0.01055;
         gpShine->mGlowSize.y -= 0.01055;
         gpShine->mGlowSize.z -= 0.01055;
-        shineData.mRotation.y += 3;
+        gpShine->mRotation.y += 3;
     }
     else
     {
-        shineData.mCoordinates = *marioPos;
+        gpShine->mCoordinates = *marioPos;
     }
 }
 
@@ -223,7 +224,9 @@ void restoreMario(TMarDirector *gpMarDirector, u32 curState)
 
     u8 *curSaveCard = (u8 *)(gpMarDirector->sNextState[0x118 / 4]);
 
-    if (curState != NORMAL || gpMarDirector->mLastState != SAVE_CARD || gpMario->mState != STATE_SHINE_C)
+    if (curState != TMarDirector::STATUS::NORMAL ||
+        gpMarDirector->mLastState != TMarDirector::STATUS::SAVE_CARD ||
+        gpMario->mState != TMario::STATE::SHINE_C)
         return;
 
     if (curSaveCard[0x2E9] != 1)
@@ -234,14 +237,14 @@ void restoreMario(TMarDirector *gpMarDirector, u32 curState)
         }
         else
         {
-            gpMario->mState = STATE_IDLE;
+            gpMario->mState = TMario::STATE::IDLE;
         }
         startStageBGM__10MSMainProcFUcUc();
         endDemoCamera__15CPolarSubCameraFv(gpCamera);
     }
     else
     {
-        gpMarDirector->mGameState |= WARP_OUT;
+        gpMarDirector->mGameState |= TMarDirector::STATE::WARP_OUT;
     }
 }
 
@@ -433,7 +436,7 @@ bool manageLightSize()
         gpLightCoordinates->y = gpMarioCoordinates->y + gInfo.Light.mShineShadowCoordinates.y;
         gpLightCoordinates->z = gpMarioCoordinates->z + gInfo.Light.mShineShadowCoordinates.z;
     }
-    return !(gInfo.Light.mLightType == 0 || gpMarDirector->mAreaID == OPTION0);
+    return !(gInfo.Light.mLightType == 0 || gpMarDirector->mAreaID == TGameSequence::AREA::OPTION);
 }
 
 //0x802571F0
@@ -441,14 +444,14 @@ float velocityCoordinatePatches(float floorCoordinateY)
 {
     TMario *gpMario = (TMario *)*(u32 *)TMarioInstance;
 
-    if (gpMario->mState != STATE_IDLE)
+    if (gpMario->mState != TMario::STATE::IDLE)
     { //Y storage
         gpMario->mSpeed.y = 0;
     }
 
-    if (floorCoordinateY < gpMario->mTakeActor.mHitActor.mActor.mCoordinates.y - 20)
+    if (floorCoordinateY < gpMario->mCoordinates.y - 20)
     { //Downwarping
-        floorCoordinateY = gpMario->mTakeActor.mHitActor.mActor.mCoordinates.y;
+        floorCoordinateY = gpMario->mCoordinates.y;
     }
     asm("lfs 0, -0x0EC8 (2)");
     return floorCoordinateY;

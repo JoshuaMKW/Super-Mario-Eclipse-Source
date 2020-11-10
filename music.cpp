@@ -57,7 +57,7 @@ bool startStreamedSFX(u32 sfxID) {
     char buffer[0x20];
     u32 handle = 0x803FDB7C;
 
-    sprintf(buffer, "/AudioRes/Streams/Music/%d.adp", (sfxID & 0x3FF));
+    sprintf(buffer, (char *)0x80004A20, (sfxID & 0x3FF)); //"/AudioRes/Streams/SFX/%d.adp"
 
     if (!DVDOpen(buffer, handle)) return false;
 

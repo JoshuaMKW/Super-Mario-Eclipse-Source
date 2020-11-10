@@ -1,10 +1,12 @@
 #pragma once
 
+#include <stdlib.h>
+
 #include "define.hxx"
 #include "funcs.hxx"
 #include "types.hxx"
 
-void *operator new(unsigned long size)
+void *operator new(size_t size)
 {
     return malloc(size, 32);
 }
@@ -480,7 +482,7 @@ public:
     JGeometry::TVec3<float> mSubjectPos; //0x0030
 };
 
-class CPolarSubCamera : JDrama::TLookAtCamera
+class CPolarSubCamera : public JDrama::TLookAtCamera
 {
 
 public:
@@ -908,6 +910,7 @@ public:
     float getCStickAnalogX() { return this->mCStickLeftRight; }
     float getCStickAnalogY() { return this->mCStickUpDown; }
     float getCStickDist() { return this->mCStickOffset; }
+    void setEnabled(bool enabled) { this->State.mReadInput = enabled; }
 };
 
 class TConductor
@@ -1267,8 +1270,8 @@ public:
     */
 
     u32 _00[0xC / 4];                 //0x0070
-    STATE mState;                     //0x007C
-    STATE mPrevState;                 //0x0080
+    u32 mState;                     //0x007C
+    u32 mPrevState;                 //0x0080
     u16 mSubState;                    //0x0084
     u16 mSubStateTimer;               //0x0086
     u32 _01;                          //0x0088
@@ -1289,8 +1292,45 @@ public:
     float mFloorBelow;                //0x00EC
     float mWaterHeight;               //0x00F0
     u32 _07[0x24 / 4];                //0x00F4
-    STATUS mAttributes;               //0x0118
-    STATUS mPrevAttributes;           //0x011C
+
+    struct {
+            u32 _04 : 10;
+            bool mIsGone : 1;
+            bool mIsShineShirt : 1;
+            u32 _03 : 2;
+            bool mIsWater : 1;
+            bool mIsShallowWater : 1;
+            bool mHasFludd : 1;
+            u32 _02 : 1;
+            bool mGainHelmet : 1;
+            bool mGainHelmetFlwCamera : 1;
+            bool mIsGroundPoundSitUp : 1;
+            bool mIsGameOver : 1;
+            u32 _01 : 5;
+            bool mLeftRecentWater : 1;
+            bool mTalkingNPC : 1;
+            bool mIsVisible : 1;
+            bool mAboveSewerFloor : 1;
+            u32 _00 : 1;
+        } mAttributes; //0x0118
+
+    struct {
+        u32 _03 : 14;
+        bool mIsWater : 1;
+        bool mIsShallowWater : 1;
+        bool mHasFludd : 1;
+        u32 _02 : 2;
+        bool mGainHelmet : 1;
+        bool mIsGroundPoundSitUp : 1;
+        bool mIsTooBad : 1;
+        u32 _01 : 5;
+        bool mLeftRecentWater : 1;
+        bool mTalkingNPC : 1;
+        bool mIsVisible : 1;
+        bool mAboveSewerFloor : 1;
+        u32 _00 : 1;
+    } mPrevAttributes; //0x011C
+
     u16 mHealth;                      //0x0120
     u16 _08;                          //0x0122
     u32 _09[0x8 / 4];                 //0x0124
@@ -1396,10 +1436,10 @@ public:
     };
 
     u32 _00[0x4C / 4];       //0x0000
-    STATE mGameState;        //0x004C
+    u16 mGameState;        //0x004C
     u16 _02;                 //0x004E
     u32 _03[0x14 / 4];       //0x0050
-    STATUS mLastState;       //0x0064
+    u8 mLastState;       //0x0064
     u8 _04;                  //0x0065
     u16 _05;                 //0x0066
     u32 _06[0xC / 4];        //0x0068
@@ -1411,7 +1451,7 @@ public:
     u32 _10[0x2C / 4];       //0x0080
     u32 *sNextState;         //0x00AC
     u32 _11;                 //0x00B0
-    STATUS mNextState;       //0x00B4
+    u8 mNextState;       //0x00B4
     u32 _12[0x1C / 4];       //0x00B8
     u32 *mGame6Data;         //0x00D4
     u32 *mAramArchive;       //0x00D8
@@ -1427,7 +1467,7 @@ class TGameSequence
 {
 
 public:
-    enum class AREA : u32
+    enum AREA : u32
     {
         AIRPORT = 0x0,
         DOLPIC = 0x1,

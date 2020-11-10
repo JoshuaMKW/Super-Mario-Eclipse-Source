@@ -95,6 +95,7 @@ pass:
 */
 
 //0x8024D2C4
+/*
 TMario* updateMario(TMario* gpMario) {
     if (gInfo.PlayerData.mCurPlayerID[i] != prevPlayerID) {
         u32* marioVolumeData = (u32*)getVolume__13JKRFileLoaderFPCc("mario");
@@ -111,25 +112,28 @@ TMario* updateMario(TMario* gpMario) {
     asm("lhz 0, 0x114 (3)");
     return gpMario;
 }
+*/
 
 //0x8024E02C
 void manageExtraJumps(TMario* gpMario) {
     if (!isMario__6TMarioFv(gpMario)) return;
 
-    if ((gpMario->mState & STATE_AIRBORN) == false || (gpMario->mState & 0x800000) || gpMario->mYoshi->mState == MOUNTED) {
-        gpMario->mCurJump = 1;
+    if ((gpMario->mState & TMario::STATE::AIRBORN) == false ||
+        (gpMario->mState & 0x800000) ||
+        gpMario->mYoshi->mState == TYoshi::STATE::MOUNTED) {
+        gpMario->mCustomInfo->mCurJump = 1;
     } else {
-        if (gpMario->mController->FrameButtons.mAButton &
-            gpMario->mCurJump < gpMario->mMaxJumps &
-            gpMario->mState != STATE_WALLSLIDE) {
-            if ((gpMario->mMaxJumps - gpMario->mCurJump) == 1) {
-                changePlayerJumping__6TMarioFUlUl(gpMario, STATE_TRIPLE_J, 0);
-            } else if ((gpMario->mState - STATE_JUMP) > 1) {
-                changePlayerJumping__6TMarioFUlUl(gpMario, STATE_JUMP, 0);
+        if (gpMario->mController->isFramePressed(TMarioGamePad::BUTTONS::A) &
+            gpMario->mCustomInfo->mCurJump < gpMario->mCustomInfo->mMaxJumps &
+            gpMario->mState != TMario::STATE::WALLSLIDE) {
+            if ((gpMario->mCustomInfo->mMaxJumps - gpMario->mCustomInfo->mCurJump) == 1) {
+                changePlayerJumping__6TMarioFUlUl(gpMario, TMario::STATE::TRIPLE_J, 0);
+            } else if ((gpMario->mState - TMario::STATE::JUMP) > 1) {
+                changePlayerJumping__6TMarioFUlUl(gpMario, TMario::STATE::JUMP, 0);
             } else {
                 changePlayerJumping__6TMarioFUlUl(gpMario, gpMario->mState ^ 1, 0);
             }
-            gpMario->mCurJump += 1;
+            gpMario->mCustomInfo->mCurJump += 1;
         }
     }
     stateMachine__6TMarioFv(gpMario);
@@ -158,10 +162,10 @@ addi sp, sp, 0x10
 
 //0x80004A78
 float calcJumpPower(TMario* gpMario, float factor, float curYVelocity, float jumpPower) {
-    jumpPower *= gpMario->mBaseJumpMulti;
-    if (gpMario->mState & STATE_AIRBORN) {
-        jumpPower *= powf(gpMario->mExJumpMulti, (float)gpMario->mCurJump);
-        gpMario->mForwardSpeed *= gpMario->mExJumpFSpeedMulti;
+    jumpPower *= gpMario->mCustomInfo->mParams->Attributes.mBaseJumpHeightMulti;
+    if (gpMario->mState & TMario::STATE::AIRBORN) {
+        jumpPower *= powf(gpMario->mCustomInfo->mParams->Attributes.mMultiJumpMultiplier, (float)gpMario->mCustomInfo->mCurJump);
+        gpMario->mForwardSpeed *= gpMario->mCustomInfo->mParams->Attributes.mMultiJumpFSpeedMulti;
     }
     return (curYVelocity * factor) + jumpPower;
 }
