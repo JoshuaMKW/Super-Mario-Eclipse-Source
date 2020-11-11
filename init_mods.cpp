@@ -18,19 +18,25 @@ u32 setupMarioDatas(char *filepath)
     TMarioGamePad *gpGamePad = gpApplication->mGamePad1;
     u32 id;
 
-    if (gpGamePad->getInput() == TMarioGamePad::BUTTONS::DPAD_UP)
+    switch (gpGamePad->getInput())
+    {
+    case TMarioGamePad::BUTTONS::DPAD_UP:
         id = 1;
-    else if (gpGamePad->getInput() == TMarioGamePad::BUTTONS::DPAD_DOWN)
+        break;
+    case TMarioGamePad::BUTTONS::DPAD_DOWN:
         id = 2;
-    else if (gpGamePad->getInput() == TMarioGamePad::BUTTONS::DPAD_LEFT)
+        break;
+    case TMarioGamePad::BUTTONS::DPAD_LEFT:
         id = 3;
-    else if (gpGamePad->getInput() == TMarioGamePad::BUTTONS::DPAD_RIGHT)
+        break;
+    case TMarioGamePad::BUTTONS::DPAD_RIGHT:
         id = 4;
-    else
+        break;
+    default:
         id = 0;
+    }
 
     sprintf(filepath, filepath, id);
-
     return DVDConvertPathToEntrynum(filepath);
 }
 
@@ -236,7 +242,6 @@ void initMusicTrack()
 void initFludd(TMario *gpMario)
 {
     SMEFile *stagefile = gInfo.mFile;
-    MarioParamsFile *localfile = gInfo.mCharacterFile;
 
     if (stagefile && stagefile->FileHeader.mIsFludd)
     {
@@ -250,18 +255,17 @@ void initFludd(TMario *gpMario)
         gpMario->mFludd->mCurrentWater = gpMario->mFludd->mNozzleList[(u8)gpMario->mFludd->mCurrentNozzle]->mMaxWater;
     }
 
-    if (localfile)
+    if (gpMario->mCustomInfo->mParams)
     {
-        waterColor = localfile->Attributes.FluddAttrs.mWaterColor;
-        if (!localfile->Attributes.FluddAttrs.mCanUseNozzle[(u8)gpMario->mFludd->mCurrentNozzle])
+        waterColor = gpMario->mCustomInfo->mParams->Attributes.FluddAttrs.mWaterColor;
+        if (!gpMario->mCustomInfo->mParams->Attributes.FluddAttrs.mCanUseNozzle[(u8)gpMario->mFludd->mCurrentNozzle])
         {
             for (u8 i = 0; i < 8; ++i)
             {
-                if (localfile->Attributes.FluddAttrs.mCanUseNozzle[i])
+                if (gpMario->mCustomInfo->mParams->Attributes.FluddAttrs.mCanUseNozzle[i])
                 {
                     gpMario->mFludd->mCurrentNozzle = (TWaterGun::NOZZLETYPE)i;
-                    if (gpMario->mCustomInfo->mParams->Attributes.mCanUseFludd)
-                        gpMario->mAttributes.mHasFludd = true;
+                    gpMario->mAttributes.mHasFludd = gpMario->mCustomInfo->mParams->Attributes.mCanUseFludd;
                     gpMario->mFludd->mCurrentWater = gpMario->mFludd->mNozzleList[(u8)gpMario->mFludd->mCurrentNozzle]->mMaxWater;
                     break;
                 }
@@ -273,14 +277,14 @@ void initFludd(TMario *gpMario)
             }
         }
 
-        if (!localfile->Attributes.FluddAttrs.mCanUseNozzle[(u8)gpMario->mFludd->mSecondNozzle])
+        if (!gpMario->mCustomInfo->mParams->Attributes.FluddAttrs.mCanUseNozzle[(u8)gpMario->mFludd->mSecondNozzle])
         {
             for (u8 i = 0; i < 8; ++i)
             {
-                if (localfile->Attributes.FluddAttrs.mCanUseNozzle[i])
+                if (gpMario->mCustomInfo->mParams->Attributes.FluddAttrs.mCanUseNozzle[i])
                 {
                     gpMario->mFludd->mSecondNozzle = (TWaterGun::NOZZLETYPE)i;
-                    gpMario->mAttributes.mHasFludd = true;
+                    gpMario->mAttributes.mHasFludd = gpMario->mCustomInfo->mParams->Attributes.mCanUseFludd;
                     break;
                 }
                 gpMario->mFludd->mSecondNozzle = gpMario->mFludd->mCurrentNozzle;
@@ -335,12 +339,11 @@ void initMario(TMario *gpMario)
 
     if (gpMario->mCustomInfo->mParams)
     {
-
         gpMario->mGravity *= gpMario->mCustomInfo->mParams->Attributes.mGravityMulti;
-        gpMario->mCustomInfo->mTerminalVelocity *= gpMario->mCustomInfo->mParams->Attributes.mGravityMulti;
+        gpMario->mCustomInfo->mTerminalVelocity = -75 * gpMario->mCustomInfo->mParams->Attributes.mGravityMulti;
         gpMario->mMaxFallNoDamage *= gpMario->mCustomInfo->mParams->Attributes.mMaxFallNoDamageMulti;
         gpMario->mCustomInfo->mMaxJumps = gpMario->mCustomInfo->mParams->Attributes.mJumpCount;
-
+ 
         gpMario->mWaterHealthDrainSpd /= gpMario->mCustomInfo->mParams->Attributes.mWaterHealthMultiplier;
         gpMario->mWaterHealthScubaDrainSpd /= gpMario->mCustomInfo->mParams->Attributes.mWaterHealthMultiplier;
         gpMario->mBaseBounceSpeed1 *= gpMario->mCustomInfo->mParams->Attributes.mBaseBounce1Multi;
@@ -368,9 +371,9 @@ void initYoshi()
 {
     SMEFile *file = gInfo.mFile;
     TMario *gpMario = (TMario *)*(u32 *)TMarioInstance;
+    TYoshi *gpYoshi = gpMario->mYoshi;
 
-    if (!file || file->FileHeader.mIsYoshi == false)
-        return;
+    if (!file || !file->FileHeader.mIsYoshi) return;
 
     RGBA<u8> *juiceColor = (RGBA<u8> *)YoshiJuiceColor;
     RGBA<u8> *yoshiColor = (RGBA<u8> *)YoshiColor;
@@ -383,8 +386,6 @@ void initYoshi()
     yoshiColor[1] = file->Yoshi.mOrangeYoshi;
     yoshiColor[2] = file->Yoshi.mPurpleYoshi;
     yoshiColor[3] = file->Yoshi.mPinkYoshi;
-
-    TYoshi *gpYoshi = gpMario->mYoshi;
 
     gpYoshi->mMaxJuice = file->Yoshi.mMaxJuice;
     gpYoshi->mMaxVSpdStartFlutter = file->Yoshi.mMaxVSpdStartFlutter;
@@ -435,8 +436,7 @@ static void parseWarpLinks(TMapCollisionData *col, WarpCollisionList *links, u32
             links->mColList[curDataIndex] = {(TBGCheckData *)&col->mFloorData->mFloorTriangles[i],
                                              (u8)(col->mFloorData->mFloorTriangles[i].mValue4 >> 8),
                                              (u8)col->mFloorData->mFloorTriangles[i].mValue4};
-            if (curDataIndex >= 0xFF)
-                break;
+            if (curDataIndex >= 0xFF) break;
             ++curDataIndex;
         }
     }
@@ -466,7 +466,7 @@ void createUIHeap(u32 size, s32 alignment)
 {
     TMarDirector *gpMarDirector = (TMarDirector *)*(u32 *)TMarDirectorInstance;
     gInfo.mGame6Heap = (u32 *)__nw__FUlP7JKRHeapi(size, (u32 *)*(u32 *)JKRSystemHeap, 32);
-    gpMarDirector->mGame6Data = (u32 *)__nwa__FUli(size, alignment);
+    gpMarDirector->mGame6Data = (u32 *)__nw__FUli(size, alignment);
 }
 
 //0x802A72A4

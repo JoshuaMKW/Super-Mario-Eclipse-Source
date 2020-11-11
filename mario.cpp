@@ -174,11 +174,14 @@ addi sp, sp, 0x10
 //0x80004A78
 float calcJumpPower(TMario *gpMario, float factor, float curYVelocity, float jumpPower)
 {
-    jumpPower *= gpMario->mCustomInfo->mParams->Attributes.mBaseJumpHeightMulti;
-    if (gpMario->mState & TMario::STATE::AIRBORN)
+    if (gpMario->mCustomInfo->mParams)
     {
-        jumpPower *= powf(gpMario->mCustomInfo->mParams->Attributes.mMultiJumpMultiplier, (float)gpMario->mCustomInfo->mCurJump);
-        gpMario->mForwardSpeed *= gpMario->mCustomInfo->mParams->Attributes.mMultiJumpFSpeedMulti;
+        jumpPower *= gpMario->mCustomInfo->mParams->Attributes.mBaseJumpHeightMulti;
+        if (gpMario->mState & TMario::STATE::AIRBORN)
+        {
+            jumpPower *= powf(gpMario->mCustomInfo->mParams->Attributes.mMultiJumpMultiplier, (float)gpMario->mCustomInfo->mCurJump);
+            gpMario->mForwardSpeed *= gpMario->mCustomInfo->mParams->Attributes.mMultiJumpFSpeedMulti;
+        }
     }
     return (curYVelocity * factor) + jumpPower;
 }
@@ -189,7 +192,11 @@ lis r11, TMario@ha
 lwz r11, TMario@l (r11)
 cmpw r11, r31
 bne- notMario
-lfs f2, 0x42A4 (r31)
+lwz r11, 0x3F4 (r31)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq notMario
+lfs f2, 0x3C (r11)
 fmuls f31, f31, f2
 notMario:
 lfs f2, 0xB0 (r31)
@@ -202,7 +209,11 @@ lis r11, TMario@ha
 lwz r11, TMario@l (r11)
 cmpw r11, r31
 bne- notMario
-lfs f0, 0x42A4 (r31)
+lwz r11, 0x3F4 (r31)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq notMario
+lfs f0, 0x3C (r11)
 fdivs f1, f1, f0
 notMario:
 */
@@ -214,7 +225,11 @@ lis r11, TMario@ha
 lwz r11, TMario@l (r11)
 cmpw r11, r31
 bne- notMario
-lfs f5, 0x42A4 (r31)
+lwz r11, 0x3F4 (r31)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq notMario
+lfs f5, 0x3C (r11)
 fmuls f0, f0, f5
 notMario:
 */
@@ -225,7 +240,11 @@ lis r11, TMario@ha
 lwz r11, TMario@l (r11)
 cmpw r11, r31
 bne- notMario
-lfs f5, 0x42A4 (r31)
+lwz r11, 0x3F4 (r31)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq notMario
+lfs f5, 0x3C (r11)
 fmuls f1, f1, f5
 notMario:
 fmadds f0, f1, f2, f0
@@ -237,7 +256,11 @@ lis r11, TMario@ha
 lwz r11, TMario@l (r11)
 cmpw r11, r31
 bne- notMario
-lfs f5, 0x42A4 (r31)
+lwz r11, 0x3F4 (r31)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq notMario
+lfs f5, 0x3C (r11)
 fmuls f2, f2, f5
 notMario:
 fmadds f0, f2, f1, f0
@@ -249,7 +272,11 @@ lis r11, TMario@ha
 lwz r11, TMario@l (r11)
 cmpw r11, r30
 bne- notMario
-lfs f5, 0x42A4 (r30)
+lwz r11, 0x3F4 (r30)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq notMario
+lfs f5, 0x3C (r11)
 fdivs f2, f2, f5
 notMario:
 fmul f0, f2, f0
@@ -262,7 +289,11 @@ lis r11, TMario@ha
 lwz r11, TMario@l (r11)
 cmpw r11, r31
 bne- notMario
-lfs f2, 0x42A4 (r31)
+lwz r11, 0x3F4 (r31)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq notMario
+lfs f2, 0x3C (r11)
 fmuls f1, f1, f2
 notMario:
 */
@@ -273,7 +304,11 @@ lis r11, TMario@ha
 lwz r11, TMario@l (r11)
 cmpw r11, r30
 bne- notMario
-lfs f5, 0x42A4 (r30)
+lwz r11, 0x3F4 (r30)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq notMario
+lfs f5, 0x3C (r11)
 fmuls f1, f1, f5
 notMario:
 fmadds f0, f2, f1, f0
@@ -286,7 +321,11 @@ lis r11, TMario@ha
 lwz r11, TMario@l (r11)
 cmpw r11, r3
 bne- notMario
-lfs f2, 0x42A4 (r3)
+lwz r11, 0x3F4 (r3)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq notMario
+lfs f2, 0x3C (r11)
 fmuls f1, f1, f2
 notMario:
 */
@@ -297,7 +336,11 @@ lis r11, TMario@ha
 lwz r11, TMario@l (r11)
 cmpw r11, r31
 bne- notMario
-lfs f5, 0x42A4 (r31)
+lwz r11, 0x3F4 (r31)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq notMario
+lfs f5, 0x3C (r11)
 fmuls f1, f1, f5
 notMario:
 fmadds f0, f2, f1, f0
@@ -310,23 +353,33 @@ lis r11, TMario@ha
 lwz r11, TMario@l (r11)
 cmpw r11, r28
 bne- notMario
-lfs f2, 0x42A4 (r28)
+lwz r11, 0x3F4 (r28)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq notMario
+lfs f2, 0x3C (r11)
 fmuls f0, f0, f2
 notMario:
 */
 
 //0x8025B14C - fSpeed Wall Bonk Ground Cap Multiplier
 /*
-lfs f0, 0x8E8 (r28)
+lfs f0, 0x8E8 (r31)
 lis r11, TMario@ha
 lwz r11, TMario@l (r11)
 cmpw r11, r31
 bne- notMario
-lfs f2, 0x42A4 (r31)
+lwz r11, 0x3F4 (r31)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq notMario
+lfs f2, 0x3C (r11)
 fmuls f0, f0, f2
 notMario:
 */
 
-void manageUnderwaterBreathing(TMario *gpMario)
-{
-}
+//0x80256670 - terminal velocity stuff
+/*
+lwz r11, 0x3F4 (r31)
+lfs f0, 0x4 (r11)
+*/

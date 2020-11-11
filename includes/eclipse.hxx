@@ -1257,6 +1257,15 @@ public:
         u8 mMaxJumps;        //0x0011
         u8 mCurJump;         //0x0012
         u8 mPlayerID;        //0x0013
+
+        struct
+        {
+            TWaterGun::NOZZLETYPE mMainNozzle;   //0x0014
+            TWaterGun::NOZZLETYPE mSecondNozzle; //0x0015
+            s32 mWaterLevel;                     //0x0016
+            bool mHadFludd;                      //0x001A
+            u8 _00;                              //0x001B
+        } FluddHistory;                          //0x0014
     };
 
     /*
@@ -1283,9 +1292,7 @@ public:
     u32 _04[0x8 / 4];                 //0x009C
     JGeometry::TVec3<float> mSpeed;   //0x00A4
     float mForwardSpeed;              //0x00B0
-    u32 _05[0x14 / 4];                //0x00B4
-    CustomInfo *mCustomInfo;          //0x00C8
-    u32 _06[0x14 / 4];                //0x00CC
+    u32 _05[0x2C / 4];                //0x00B4
     TBGCheckData *mFloorTriangle;     //0x00E0
     TBGCheckData *mFloorTriangleCopy; //0x00E4
     float mCeilingAbove;              //0x00E8
@@ -1338,7 +1345,7 @@ public:
     u32 _09[0x8 / 4];                //0x0124
     float mWaterHealth;              //0x012C
     float mMaxWaterHealth;           //0x0130
-    u32 _09aa[0x164 / 4];            //0x0134
+    u32 _09a[0x164 / 4];             //0x0134
     u32 mInitialWater;               //0x0298
     u32 _10[0x10 / 4];               //0x029C
     float mLastGroundedHeight;       //0x02AC
@@ -1359,7 +1366,8 @@ public:
     TWaterGun *mFludd;               //0x03E4
     u32 _15[0x8 / 4];                //0x03E8
     TYoshi *mYoshi;                  //0x03F0
-    u32 _16[0x108 / 4];              //0x03F4
+    CustomInfo *mCustomInfo;         //0x03F4
+    u32 _16[0x104 / 4];              //0x03F8
     TMarioGamePad *mController;      //0x04FC
     u32 _17[0x8C / 4];               //0x0500
     u16 mMaxHealth;                  //0x058C

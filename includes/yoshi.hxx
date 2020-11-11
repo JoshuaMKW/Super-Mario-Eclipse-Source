@@ -11,7 +11,7 @@ bool TYoshi::isGreenYoshiMounted() {
 }
 
 bool TYoshi::isGreenYoshiAscendingWater(TMario* gpMario) {
-    if (!(gpMario->mAttributes & TMario::STATUS::PUDDLE) ||
+    if (!(gpMario->mAttributes.mIsWater) ||
         !gpMario->mController->isPressed(TMarioGamePad::BUTTONS::A) ||
         !gpMario->mYoshi->isGreenYoshiMounted()) {
         return false;
