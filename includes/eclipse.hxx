@@ -1292,7 +1292,8 @@ public:
     u32 _04[0x8 / 4];                 //0x009C
     JGeometry::TVec3<float> mSpeed;   //0x00A4
     float mForwardSpeed;              //0x00B0
-    u32 _05[0x2C / 4];                //0x00B4
+    u32 _05[0x28 / 4];                //0x00B4
+    TBGCheckData *mRoofTriangle;      //0x00DC
     TBGCheckData *mFloorTriangle;     //0x00E0
     TBGCheckData *mFloorTriangleCopy; //0x00E4
     float mCeilingAbove;              //0x00E8
@@ -1394,7 +1395,9 @@ public:
     float mAirborneHSpeedMul;        //0x0B54
     u32 _29[0x10 / 4];               //0x0B58
     float mDefaultAccelerationMul;   //0x0B68
-    u32 _30[0x700 / 4];              //0x0B6C
+    u32 _30[0x24 / 4];               //0x0B6C
+    float mSideFlipStrength;         //0x0B90
+    u32 _30a[0x6D8 / 4];             //0x0B94
     float mWaterHealthDrainSpd;      //0x126C
     u32 _31[0x10 / 4];               //0x1270
     float mWaterHealthScubaDrainSpd; //0x1280
@@ -1771,10 +1774,12 @@ public:
             bool mCanUseNozzle[8];        //0x0040
             RGBA<u8> mWaterColor;         //0x0048
             FluddCleanType mCleaningType; //0x004C
+            u8 _00;                       //0x004D
+            u16 _01;                      //0x004E
             bool mBindToJointID[8];       //0x0050
             bool mCanCleanSeals;          //0x0058
-            u8 _00;                       //0x0059
-            u16 _01;                      //0x005A
+            u8 _02;                       //0x0059
+            u16 _03;                      //0x005A
         } FluddAttrs;
 
         float mWaterHealthMultiplier; //0x005C

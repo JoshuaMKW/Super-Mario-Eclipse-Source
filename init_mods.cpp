@@ -293,18 +293,24 @@ void initFludd(TMario *gpMario)
     }
 }
 
-//0x80276AC8
+//0x80276AC0 - Mario
 /*
-lis r29, 0x8000
-ori r29, r29, 0x50D0
 mr r3, r30
-mtctr r29
-bctrl
-lwz r30, 0x38 (sp)
+__set r4, TRUE
+__call r12, 0x800050D0
+lwz r0, 0x44 (sp)
+*/
+
+//0x800397FC - Shadow Mario
+/*
+lwz r3, 0x150 (r31)
+__set r4, FALSE
+__call r12, 0x800050D0
+lwz r0, 0x1C (sp)
 */
 
 //0x800050D0
-void initMario(TMario *gpMario)
+void initMario(TMario *gpMario, bool isMario)
 {
     SMEFile *file = gInfo.mFile;
     gpMario->mCustomInfo = (TMario::CustomInfo *)malloc(sizeof(TMario::CustomInfo), 32);
@@ -333,6 +339,8 @@ void initMario(TMario *gpMario)
             wearGlass__6TMarioFv(gpMario);
         }
     }
+
+    if (!isMario) return;
 
     gpMario->mCustomInfo->mParams = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc(0x804165A0), //mario
                                                                                      0x800049F5);                                ///params.bin

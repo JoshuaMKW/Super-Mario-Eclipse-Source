@@ -134,7 +134,14 @@ void manageExtraJumps(TMario *gpMario)
         {
             if ((gpMario->mCustomInfo->mMaxJumps - gpMario->mCustomInfo->mCurJump) == 1)
             {
-                changePlayerJumping__6TMarioFUlUl(gpMario, TMario::STATE::TRIPLE_J, 0);
+                if (gpMario->mState != TMario::STATE::TRIPLE_J)
+                {
+                    changePlayerJumping__6TMarioFUlUl(gpMario, TMario::STATE::TRIPLE_J, 0);
+                }
+                else
+                {
+                    setStatusToJumping__6TMarioFUlUl(gpMario, TMario::STATE::TRIPLE_J, 0);
+                }
             }
             else if ((gpMario->mState - TMario::STATE::JUMP) > 1)
             {
@@ -150,8 +157,10 @@ void manageExtraJumps(TMario *gpMario)
     stateMachine__6TMarioFv(gpMario);
 }
 
-//0x802546E4, 0x802546B0, 0x80254540
+//0x80254884, 0x8025474C, 0x802546E4, 0x802546B0, 0x80254540 -> 0x800050E8
 /*
+mflr r0
+stw r0, 0x4 (sp)
 stwu sp, -0x10 (sp)
 stw r31, 0x8 (sp)
 mr r31, r4
@@ -169,6 +178,9 @@ mr r3, r30
 mr r4, r31
 lwz r31, 0x8 (sp)
 addi sp, sp, 0x10
+lwz r0, 0x4 (sp)
+mtlr r0
+blr
 */
 
 //0x80004A78
