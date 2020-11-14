@@ -13185,7 +13185,7 @@ public:
 
     } Attributes;
 
-    inline void operator =(MarioParamsFile *paramsFile)
+    void operator << (MarioParamsFile *paramsFile)
     {
         memcpy(this, paramsFile, sizeof(MarioParamsFile));
 

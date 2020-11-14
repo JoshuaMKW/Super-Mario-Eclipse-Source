@@ -254,36 +254,36 @@ void initFludd(TMario *gpMario)
         gpMario->mFludd->mCurrentWater = gpMario->mFludd->mNozzleList[(u8)gpMario->mFludd->mCurrentNozzle]->mMaxWater;
     }
 
-    if (gpMario->mCustomInfo->mParams)
+    if (MarioParamsFile *params = gpMario->mCustomInfo->mParams; params)
     {
-        waterColor = gpMario->mCustomInfo->mParams->Attributes.FluddAttrs.mWaterColor;
-        if (!gpMario->mCustomInfo->mParams->Attributes.FluddAttrs.mCanUseNozzle[(u8)gpMario->mFludd->mCurrentNozzle])
+        waterColor = params->Attributes.FluddAttrs.mWaterColor;
+        if (!params->Attributes.FluddAttrs.mCanUseNozzle[(u8)gpMario->mFludd->mCurrentNozzle])
         {
             for (u8 i = 0; i < 8; ++i)
             {
-                if (gpMario->mCustomInfo->mParams->Attributes.FluddAttrs.mCanUseNozzle[i])
+                if (params->Attributes.FluddAttrs.mCanUseNozzle[i])
                 {
                     gpMario->mFludd->mCurrentNozzle = (TWaterGun::NOZZLETYPE)i;
-                    gpMario->mAttributes.mHasFludd = gpMario->mCustomInfo->mParams->Attributes.mCanUseFludd;
+                    gpMario->mAttributes.mHasFludd = params->Attributes.mCanUseFludd;
                     gpMario->mFludd->mCurrentWater = gpMario->mFludd->mNozzleList[(u8)gpMario->mFludd->mCurrentNozzle]->mMaxWater;
                     break;
                 }
                 else if (i == 7)
                 {
                     gpMario->mAttributes.mHasFludd = false;
-                    gpMario->mCustomInfo->mParams->Attributes.mCanUseFludd = false;
+                    params->Attributes.mCanUseFludd = false;
                 }
             }
         }
 
-        if (!gpMario->mCustomInfo->mParams->Attributes.FluddAttrs.mCanUseNozzle[(u8)gpMario->mFludd->mSecondNozzle])
+        if (!params->Attributes.FluddAttrs.mCanUseNozzle[(u8)gpMario->mFludd->mSecondNozzle])
         {
             for (u8 i = 0; i < 8; ++i)
             {
-                if (gpMario->mCustomInfo->mParams->Attributes.FluddAttrs.mCanUseNozzle[i])
+                if (params->Attributes.FluddAttrs.mCanUseNozzle[i])
                 {
                     gpMario->mFludd->mSecondNozzle = (TWaterGun::NOZZLETYPE)i;
-                    gpMario->mAttributes.mHasFludd = gpMario->mCustomInfo->mParams->Attributes.mCanUseFludd;
+                    gpMario->mAttributes.mHasFludd = params->Attributes.mCanUseFludd;
                     break;
                 }
                 gpMario->mFludd->mSecondNozzle = gpMario->mFludd->mCurrentNozzle;
@@ -314,7 +314,7 @@ void initMario(TMario *gpMario, bool isMario)
     SMEFile *file = gInfo.mFile;
     gpMario->mCustomInfo = (TMario::CustomInfo *)malloc(sizeof(TMario::CustomInfo), 32);
     gpMario->mCustomInfo->mParams = nullptr;
-    gpMario->mCustomInfo->mBackUpParams = nullptr;
+    gpMario->mCustomInfo->_mBaseParams = nullptr;
 
     if (file && file->FileHeader.mIsMario)
     {
@@ -343,60 +343,64 @@ void initMario(TMario *gpMario, bool isMario)
 
     if (!isMario) return;
 
-    gpMario->mCustomInfo->mParams = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc(0x804165A0), //mario
+    gpMario->mCustomInfo->_mBaseParams = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc(0x804165A0), //mario
                                                                                      0x800049F5);                                ///params.bin
     
     if (gpMario->mCustomInfo->mParams)
     {
-        gpMario->mCustomInfo->mBackUpParams = (MarioParamsFile *)malloc(sizeof(MarioParamsFile), 32);
-        gpMario->mCustomInfo->mBackUpParams = gpMario->mCustomInfo->mParams;
+        gpMario->mCustomInfo->mParams = (MarioParamsFile *)malloc(sizeof(MarioParamsFile), 32);
 
-        float sizeX = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.x;
-        float sizeY = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.y;
-        float sizeZ = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.z;
+        MarioParamsFile *params = gpMario->mCustomInfo->mParams;
+        MarioParamsFile *baseParams = gpMario->mCustomInfo->_mBaseParams;
+
+        memcpy(params, baseParams, sizeof(MarioParamsFile));
+
+        float sizeX = baseParams->Attributes.mSizeMultiplier.x;
+        float sizeY = baseParams->Attributes.mSizeMultiplier.y;
+        float sizeZ = baseParams->Attributes.mSizeMultiplier.z;
         float sizeAvg = (sizeX + sizeY + sizeZ) / 3;
-        
-        gpMario->mCustomInfo->mParams->Attributes.mBaseBounce2Multi *= sizeAvg;
-        gpMario->mCustomInfo->mParams->Attributes.mBaseBounce3Multi *= sizeAvg;
-        gpMario->mCustomInfo->mParams->Attributes.mMaxFallNoDamageMulti *= sizeAvg;
-        gpMario->mCustomInfo->mParams->Attributes.mBaseJumpHeightMulti *= sizeAvg;
-        gpMario->mCustomInfo->mParams->Attributes.mSpeedMultiplier *= sizeAvg;
+
+        params->Attributes.mBaseBounce2Multi *= sizeAvg;
+        params->Attributes.mBaseBounce3Multi *= sizeAvg;
+        params->Attributes.mMaxFallNoDamageMulti *= sizeAvg;
+        params->Attributes.mBaseJumpHeightMulti *= sizeAvg;
+        params->Attributes.mSpeedMultiplier *= sizeAvg;
 
 
 
 
-        gpMario->mCustomInfo->mParams->Attributes.mBaseBounce1Multi *= sizeAvg;
-        gpMario->mCustomInfo->mParams->Attributes.mBaseBounce2Multi *= sizeAvg;
-        gpMario->mCustomInfo->mParams->Attributes.mBaseBounce3Multi *= sizeAvg;
-        gpMario->mCustomInfo->mParams->Attributes.mMaxFallNoDamageMulti *= sizeAvg;
-        gpMario->mCustomInfo->mParams->Attributes.mBaseJumpHeightMulti *= sizeAvg;
-        gpMario->mCustomInfo->mParams->Attributes.mSpeedMultiplier *= sizeAvg;
+        params->Attributes.mBaseBounce1Multi *= sizeAvg;
+        params->Attributes.mBaseBounce2Multi *= sizeAvg;
+        params->Attributes.mBaseBounce3Multi *= sizeAvg;
+        params->Attributes.mMaxFallNoDamageMulti *= sizeAvg;
+        params->Attributes.mBaseJumpHeightMulti *= sizeAvg;
+        params->Attributes.mSpeedMultiplier *= sizeAvg;
 
-        gpMario->mGravity *= gpMario->mCustomInfo->mParams->Attributes.mGravityMulti;
-        gpMario->mCustomInfo->mTerminalVelocity = -75 * gpMario->mCustomInfo->mParams->Attributes.mGravityMulti;
-        gpMario->mMaxFallNoDamage *= gpMario->mCustomInfo->mParams->Attributes.mMaxFallNoDamageMulti;
-        gpMario->mCustomInfo->mMaxJumps = gpMario->mCustomInfo->mParams->Attributes.mJumpCount;
+        gpMario->mGravity *= params->Attributes.mGravityMulti;
+        gpMario->mCustomInfo->mTerminalVelocity = -75 * params->Attributes.mGravityMulti;
+        gpMario->mMaxFallNoDamage *= params->Attributes.mMaxFallNoDamageMulti;
+        gpMario->mCustomInfo->mMaxJumps = params->Attributes.mJumpCount;
 
         gpMario->mModelData->mModel->mSizeMultiplier.x *= sizeX;
         gpMario->mModelData->mModel->mSizeMultiplier.y *= sizeY;
         gpMario->mModelData->mModel->mSizeMultiplier.z *= sizeZ;
         gpMario->mOceanOfs *= sizeY;
 
-        gpMario->mWaterHealthDrainSpd /= gpMario->mCustomInfo->mParams->Attributes.mWaterHealthMultiplier;
-        gpMario->mWaterHealthScubaDrainSpd /= gpMario->mCustomInfo->mParams->Attributes.mWaterHealthMultiplier;
-        gpMario->mBaseBounceSpeed1 *= gpMario->mCustomInfo->mParams->Attributes.mBaseBounce1Multi;
-        gpMario->mBaseBounceSpeed2 *= gpMario->mCustomInfo->mParams->Attributes.mBaseBounce2Multi;
-        gpMario->mBaseBounceSpeed3 *= gpMario->mCustomInfo->mParams->Attributes.mBaseBounce3Multi;
-        gpMario->mHealth = gpMario->mCustomInfo->mParams->Attributes.mHealth;
-        gpMario->mMaxHealth = gpMario->mCustomInfo->mParams->Attributes.mMaxHealth;
-        gpMario->mOBStep = gpMario->mCustomInfo->mParams->Attributes.mOBStep;
-        gpMario->mOBMax = gpMario->mCustomInfo->mParams->Attributes.mOBMax;
+        gpMario->mWaterHealthDrainSpd /= params->Attributes.mWaterHealthMultiplier;
+        gpMario->mWaterHealthScubaDrainSpd /= params->Attributes.mWaterHealthMultiplier;
+        gpMario->mBaseBounceSpeed1 *= params->Attributes.mBaseBounce1Multi;
+        gpMario->mBaseBounceSpeed2 *= params->Attributes.mBaseBounce2Multi;
+        gpMario->mBaseBounceSpeed3 *= params->Attributes.mBaseBounce3Multi;
+        gpMario->mHealth = params->Attributes.mHealth;
+        gpMario->mMaxHealth = params->Attributes.mMaxHealth;
+        gpMario->mOBStep = params->Attributes.mOBStep;
+        gpMario->mOBMax = params->Attributes.mOBMax;
 
-        gpMario->mAttributes.mGainHelmet = gpMario->mCustomInfo->mParams->Attributes.mMarioHasHelmet;
-        gpMario->mAttributes.mHasFludd = gpMario->mCustomInfo->mParams->Attributes.mCanUseFludd;
-        gpMario->mAttributes.mIsShineShirt = gpMario->mCustomInfo->mParams->Attributes.mMarioHasShirt;
+        gpMario->mAttributes.mGainHelmet = params->Attributes.mMarioHasHelmet;
+        gpMario->mAttributes.mHasFludd = params->Attributes.mCanUseFludd;
+        gpMario->mAttributes.mIsShineShirt = params->Attributes.mMarioHasShirt;
 
-        if (gpMario->mCustomInfo->mParams->Attributes.mMarioHasGlasses)
+        if (params->Attributes.mMarioHasGlasses)
         {
             wearGlass__6TMarioFv(gpMario);
         }

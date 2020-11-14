@@ -1286,7 +1286,7 @@ public:
         } FluddHistory;                          //0x0014
 
         float mSizeContext; //0x001C
-        MarioParamsFile *mBackUpParams; //0x0020
+        MarioParamsFile *_mBaseParams; //0x0020
     };
 
     /*
