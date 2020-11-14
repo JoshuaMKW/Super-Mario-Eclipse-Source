@@ -10,6 +10,8 @@
 #define angleToRadians ((float (*)(float angle))0x80003400)
 #define radiansToAngle ((float (*)(float angle))0x8000341C)
 #define sqrtf(input) powf(input, 0.5)
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+#define min(a, b) (((a) < (b)) ? (a) : (b))
 
 #define dcbst(_val) asm volatile("dcbst 0, %0" \
                                  :             \

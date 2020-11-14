@@ -25,18 +25,25 @@ static inline void flushAddr(void *addr)
 template <typename T>
 struct RGB
 {
-    T R;
-    T G;
-    T B;
+    T R, G, B;
 };
 
 template <typename T>
 struct RGBA
 {
-    T R;
-    T G;
-    T B;
-    T A;
+    T R, G, B, A;
+};
+
+struct Quaternion
+{
+    float x, y, z, w;
+};
+
+struct Matrix3D
+{
+    float a[4];
+    float b[4];
+    float c[4];
 };
 
 struct OSCalendarTime
@@ -326,8 +333,18 @@ class J3DModel
 {
 
 public:
-    u32 _00[0x8 / 4]; //0x0000
-    u32 *mJointList;  //0x0008
+    u32 _00[0x14 / 4];          //0x0000
+    Quaternion mSizeMultiplier; //0x0014
+    u32 _01[0x40 / 4];          //0x0018
+    Matrix3D *mJointArray[];    //0x0058
+};
+
+class M3UModelMario
+{
+
+public:
+    void *_00[2];     //0x0000
+    J3DModel *mModel; //0x0008
 };
 
 class TRailNode
@@ -404,7 +421,7 @@ class THitActor : public JDrama::TActor
 public:
     THitActor **mCollidingObjs; //0x0044
     s16 mNumObjs;               //0x0048
-    s16 mMaxObjs;               //0x004
+    s16 mMaxObjs;               //0x004A
     u32 mObjectID;              //0x004C
     float mAttackRadius;        //0x0050
     float mAttackHeight;        //0x0054
@@ -1208,11 +1225,12 @@ public:
 
     enum class ANIMATION : u32
     {
-        IDLE = 0xC3,
+        WALLHANG = 0x33,
         FALL = 0x4C,
         BOUNCE = 0x50,
-        SPINJUMP = 0xF4,
-        SHINEGET = 0xCD
+        IDLE = 0xC3,
+        SHINEGET = 0xCD,
+        SPINJUMP = 0xF4
     };
 
     enum class EFFECT : u32
@@ -1292,7 +1310,8 @@ public:
     u32 _04[0x8 / 4];                 //0x009C
     JGeometry::TVec3<float> mSpeed;   //0x00A4
     float mForwardSpeed;              //0x00B0
-    u32 _05[0x28 / 4];                //0x00B4
+    u32 _05[0x24 / 4];                //0x00B4
+    TBGCheckData *mWallTriangle;      //0x00D8
     TBGCheckData *mRoofTriangle;      //0x00DC
     TBGCheckData *mFloorTriangle;     //0x00E0
     TBGCheckData *mFloorTriangleCopy; //0x00E4
@@ -1346,7 +1365,9 @@ public:
     u32 _09[0x8 / 4];                //0x0124
     float mWaterHealth;              //0x012C
     float mMaxWaterHealth;           //0x0130
-    u32 _09a[0x164 / 4];             //0x0134
+    u32 _09a[0x28 / 4];              //0x0134
+    float mCollisionXZSize;          //0x015C
+    u32 _09b[0x138 / 4];             //0x0160
     u32 mInitialWater;               //0x0298
     u32 _10[0x10 / 4];               //0x029C
     float mLastGroundedHeight;       //0x02AC
@@ -1359,7 +1380,7 @@ public:
     J3DDrawBuffer *mDrawBufferA;     //0x0394
     J3DDrawBuffer *mDrawBufferB;     //0x0398
     u32 _14a[0xC / 4];               //0x039C
-    J3DModel *mModelData;            //0x03A8
+    M3UModelMario *mModelData;       //0x03A8
     u32 _14b[0x18 / 4];              //0x03AC
     u8 mBindBoneIDArray[12];         //0x03C4
     u32 _14c[0x10 / 4];              //0x03D0
@@ -1397,13 +1418,20 @@ public:
     float mDefaultAccelerationMul;   //0x0B68
     u32 _30[0x24 / 4];               //0x0B6C
     float mSideFlipStrength;         //0x0B90
-    u32 _30a[0x6D8 / 4];             //0x0B94
+    u32 _30a[0x5D4 / 4];             //0x0B94
+    float mOceanOfs;                 //0x1168
+    u32 _30b[0x100 / 4];             //0x116C
     float mWaterHealthDrainSpd;      //0x126C
     u32 _31[0x10 / 4];               //0x1270
     float mWaterHealthScubaDrainSpd; //0x1280
     u32 _32[0x10 / 4];               //0x1284
     float mWaterHealthIncreaseSpd;   //0x1294
-    u32 _33[0x17C / 4];              //0x1298
+    u32 _32a[0x40 / 4];              //0x1298
+    s16 mWallAnimTimer;              //0x12D8
+    u16 _32b;                        //0x12DA
+    u32 _32c[0x10 / 4];              //0x12DC
+    s16 mWallHangTimer;              //0x12EC
+    u32 _33[0x124 / 4];              //0x12F0
     float mTRopeAirborneAccelMul;    //0x1414
     u32 _34[0xE04 / 4];              //0x1418
     float mVSpeedYoshiMul;           //0x221C
@@ -1783,11 +1811,16 @@ public:
         } FluddAttrs;
 
         float mWaterHealthMultiplier; //0x005C
-        u32 padding[16];              //0x0060
+        char *mNameOffset;            //0x0060
+        float mThrowPowerMultiplier;  //0x0064
+        s16 mWallHangMax;             //0x0068
+        bool mGoopAffected;           //0x006A
+        bool mCanHoldNPCs;            //0x006B
+        bool mCanClimbWalls;          //0x006C
+
+        u32 padding[14]; //0x0060
 
     } /*__attribute__((packed))*/ Attributes;
-
-    char mCharacterName[]; //0x00A0
 };
 
 class Vector3D

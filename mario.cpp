@@ -395,3 +395,95 @@ notMario:
 lwz r11, 0x3F4 (r31)
 lfs f0, 0x4 (r11)
 */
+
+//0x8025696C - collision height #1
+/*
+lfs f1, -0xEDC (rtoc)
+lwz r11, 0x3F4 (r22)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq skip
+
+lfs f0, 0x14 (r11)
+fmuls f1, f0, f1
+
+skip:
+*/
+
+//0x80256D14 - collision height #2
+/*
+lfs f2, -0xEDC (rtoc)
+lwz r11, 0x3F4 (r29)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq skip
+
+lfs f0, 0x14 (r11)
+fmuls f2, f0, f2
+
+skip:
+*/
+
+//0x802573FC - collision height #3
+/*
+lfs f0, -0xEDC (rtoc)
+lwz r11, 0x3F4 (r30)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq skip
+
+lfs f2, 0x14 (r11)
+fmuls f0, f2, f0
+
+skip:
+*/
+
+//0x802505F4 - collision width
+/*
+lwz r11, 0x3F4 (r29)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq skip
+
+lfs f1, 0x10 (r11)
+lfs f3, 0x18 (r11)
+fcmpo cr7, f1, f3
+bgt cr7 0x8
+
+fmr f1, f3
+
+fmuls f0, f1, f0
+
+skip:
+stfs f0, 0x15C (r29)
+*/
+
+//0x80256CE8 - grab length multiplier
+/*
+lfs f2, -0xED8 (rtoc)
+lwz r11, 0x3F4 (r29)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq skip
+
+lfs f0, 0x18 (r11)
+fmuls f2, f2, f0
+
+skip:
+*/
+
+//0x80256D34 - grab length multiplier
+/*
+lfs f0, -0xED4 (rtoc)
+lwz r11, 0x3F4 (r29)
+lwz r11, 0 (r11)
+cmpwi r11, NULLPTR
+beq skip
+
+lfs f3, 0x18 (r11)
+fmuls f0, f3, f0
+
+skip:
+*/
+
+//REMEMBER TO CHECK hangonCheck...

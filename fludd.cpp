@@ -103,7 +103,7 @@ bool canCleanSeals(TWaterManager *gpWaterManager)
 }
 
 //0x8024D560
-void bindFluddtojoint(TWaterGun *gpFludd, u32 *joint)
+void bindFluddtojoint(TWaterGun *gpFludd, Matrix3D *joint)
 {
     MarioParamsFile *localfile = gpFludd->mMario->mCustomInfo->mParams;
     u32 *jointlist;
@@ -112,8 +112,7 @@ void bindFluddtojoint(TWaterGun *gpFludd, u32 *joint)
     if (localfile)
     {
         index = localfile->Attributes.FluddAttrs.mBindToJointID[(u8)gpFludd->mCurrentNozzle] * 0x30;
-        jointlist = gpFludd->mMario->mModelData->mJointList;
-        joint = (u32 *)(jointlist[0x58 / 4] + index);
+        joint = gpFludd->mMario->mModelData->mModel->mJointArray[index];
     }
     setBaseTRMtx__9TWaterGunFPA4_f(gpFludd, joint);
 }

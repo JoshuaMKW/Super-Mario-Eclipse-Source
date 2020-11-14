@@ -483,11 +483,22 @@ inline void resetValuesOnCollisionChange(TMario *gpMario)
 }
 
 //0x802500B8
-u32 resetValues(TMario *gpMario)
+u32 updateCollisionContext(TMario *gpMario)
 {
     resetValuesOnStateChange(gpMario);
     resetValuesOnGroundContact(gpMario);
     resetValuesOnAirborn(gpMario);
     resetValuesOnCollisionChange(gpMario);
+
+    float marioCollisionHeight = *(float *)0x80415CC4;
+    if (gpMario->mCustomInfo->mParams)
+        marioCollisionHeight *= gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.y;
+
+    if (gpMario->mCeilingAbove - gpMario->mFloorBelow < marioCollisionHeight &&
+        gpMario->mRoofTriangle &&
+        !(gpMario->mState & TMario::STATE::AIRBORN))
+    {
+        loserExec__6TMarioFv(gpMario);
+    }
     return 1;
 }

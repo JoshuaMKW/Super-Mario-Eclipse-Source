@@ -86,8 +86,7 @@ void initFileMods()
     char folder[] = "/data/scene/sme/";
     const char *stage = getStageName((TApplication *)TApplicationInstance);
 
-    if (!stage)
-        return;
+    if (!stage) return;
 
     SMEFile *file = SMEFile::loadFile(SMEFile::parseExtension(folder, stage, false));
 
@@ -340,18 +339,39 @@ void initMario(TMario *gpMario, bool isMario)
         }
     }
 
-    if (!isMario) return;
+    if (!isMario)
+    {
+        gpMario->mCustomInfo->mParams = nullptr;
+        return;
+    }
 
     gpMario->mCustomInfo->mParams = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc(0x804165A0), //mario
                                                                                      0x800049F5);                                ///params.bin
 
     if (gpMario->mCustomInfo->mParams)
     {
+        float sizeX = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.x;
+        float sizeY = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.y;
+        float sizeZ = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.z;
+        float sizeAvg = (sizeX + sizeY + sizeZ) / 3;
+
+        gpMario->mCustomInfo->mParams->Attributes.mBaseBounce1Multi *= sizeAvg;
+        gpMario->mCustomInfo->mParams->Attributes.mBaseBounce2Multi *= sizeAvg;
+        gpMario->mCustomInfo->mParams->Attributes.mBaseBounce3Multi *= sizeAvg;
+        gpMario->mCustomInfo->mParams->Attributes.mMaxFallNoDamageMulti *= sizeAvg;
+        gpMario->mCustomInfo->mParams->Attributes.mBaseJumpHeightMulti *= sizeAvg;
+        gpMario->mCustomInfo->mParams->Attributes.mSpeedMultiplier *= sizeAvg;
+
         gpMario->mGravity *= gpMario->mCustomInfo->mParams->Attributes.mGravityMulti;
         gpMario->mCustomInfo->mTerminalVelocity = -75 * gpMario->mCustomInfo->mParams->Attributes.mGravityMulti;
         gpMario->mMaxFallNoDamage *= gpMario->mCustomInfo->mParams->Attributes.mMaxFallNoDamageMulti;
         gpMario->mCustomInfo->mMaxJumps = gpMario->mCustomInfo->mParams->Attributes.mJumpCount;
- 
+
+        gpMario->mModelData->mModel->mSizeMultiplier.x *= sizeX;
+        gpMario->mModelData->mModel->mSizeMultiplier.y *= sizeY;
+        gpMario->mModelData->mModel->mSizeMultiplier.z *= sizeZ;
+        gpMario->mOceanOfs *= sizeY;
+
         gpMario->mWaterHealthDrainSpd /= gpMario->mCustomInfo->mParams->Attributes.mWaterHealthMultiplier;
         gpMario->mWaterHealthScubaDrainSpd /= gpMario->mCustomInfo->mParams->Attributes.mWaterHealthMultiplier;
         gpMario->mBaseBounceSpeed1 *= gpMario->mCustomInfo->mParams->Attributes.mBaseBounce1Multi;
