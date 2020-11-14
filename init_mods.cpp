@@ -346,12 +346,10 @@ void initMario(TMario *gpMario, bool isMario)
     gpMario->mCustomInfo->_mBaseParams = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc(0x804165A0), //mario
                                                                                      0x800049F5);                                ///params.bin
     
-    if (gpMario->mCustomInfo->mParams)
+    if (MarioParamsFile *baseParams = gpMario->mCustomInfo->_mBaseParams; baseParams)
     {
         gpMario->mCustomInfo->mParams = (MarioParamsFile *)malloc(sizeof(MarioParamsFile), 32);
-
         MarioParamsFile *params = gpMario->mCustomInfo->mParams;
-        MarioParamsFile *baseParams = gpMario->mCustomInfo->_mBaseParams;
 
         memcpy(params, baseParams, sizeof(MarioParamsFile));
 
