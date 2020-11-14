@@ -12644,6 +12644,9 @@ public:
             bool mHadFludd;                      //0x001A
             u8 _00;                              //0x001B
         } FluddHistory;                          //0x0014
+
+        float mSizeContext; //0x001C
+        MarioParamsFile *mBackUpParams; //0x0020
     };
 
     /*

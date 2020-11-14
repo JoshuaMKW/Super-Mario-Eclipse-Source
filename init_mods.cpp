@@ -351,7 +351,11 @@ void initMario(TMario *gpMario, bool isMario)
         gpMario->mCustomInfo->mBackUpParams = (MarioParamsFile *)malloc(sizeof(MarioParamsFile), 32);
         gpMario->mCustomInfo->mBackUpParams = gpMario->mCustomInfo->mParams;
 
-        gpMario->mCustomInfo->mBackUpParams->Attributes.mBaseBounce1Multi = gpMario->mCustomInfo->mParams->Attributes.mBaseBounce1Multi *= sizeAvg;
+        float sizeX = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.x;
+        float sizeY = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.y;
+        float sizeZ = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.z;
+        float sizeAvg = (sizeX + sizeY + sizeZ) / 3;
+        
         gpMario->mCustomInfo->mParams->Attributes.mBaseBounce2Multi *= sizeAvg;
         gpMario->mCustomInfo->mParams->Attributes.mBaseBounce3Multi *= sizeAvg;
         gpMario->mCustomInfo->mParams->Attributes.mMaxFallNoDamageMulti *= sizeAvg;
@@ -359,10 +363,6 @@ void initMario(TMario *gpMario, bool isMario)
         gpMario->mCustomInfo->mParams->Attributes.mSpeedMultiplier *= sizeAvg;
 
 
-        float sizeX = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.x;
-        float sizeY = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.y;
-        float sizeZ = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.z;
-        float sizeAvg = (sizeX + sizeY + sizeZ) / 3;
 
 
         gpMario->mCustomInfo->mParams->Attributes.mBaseBounce1Multi *= sizeAvg;
