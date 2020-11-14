@@ -1630,7 +1630,7 @@ public:
         u8 mPlayerID; //0x0019
         u16 _01;      //0x001A
         u32 _02;      //0x001C
-    } /*__attribute__((packed))*/ FileHeader;
+    } FileHeader;
 
     struct
     {
@@ -1641,7 +1641,7 @@ public:
         u8 mLayerCount;                       //0x0038
         u8 mDarkLevel;                        //0x0039
         u16 _00;                              //0x003A
-    } /*__attribute__((packed))*/ Light;
+    } Light;
 
     struct
     {
@@ -1656,7 +1656,7 @@ public:
         u16 mOBStep;            //0x0058
         u16 mOBMax;             //0x005A
         u32 _00;                //0x005C
-    } /*__attribute__((packed))*/ Mario;
+    } Mario;
 
     struct
     {
@@ -1670,7 +1670,7 @@ public:
         u16 mMaxFlutterTimer;       //0x007C
         bool mYoshiHungry;          //0x007E
         bool mIsEggFree;            //0x007F
-    } /*__attribute__((packed))*/ Yoshi;
+    } Yoshi;
 
     struct
     {
@@ -1681,7 +1681,7 @@ public:
         u16 mMusicID;    //0x008D
         u8 mAreaID;      //0x008F
         u8 mEpisodeID;   //0x0090
-    } /*__attribute__((packed))*/ Music;
+    } Music;
 
     struct
     {
@@ -1689,7 +1689,7 @@ public:
         TWaterGun::NOZZLETYPE mSecondaryNozzle; //0x0092
         RGBA<u8> mWaterColor;                   //0x0093
         bool mIsColorWater;                     //0x0097
-    } /*__attribute__((packed))*/ Fludd;
+    } Fludd;
 
     static SMEFile *loadFile(const char *stringPath)
     {
@@ -1820,7 +1820,7 @@ public:
 
         u32 padding[14]; //0x0060
 
-    } /*__attribute__((packed))*/ Attributes;
+    } Attributes;
 };
 
 class Vector3D
@@ -2024,12 +2024,12 @@ struct CustomInfo
         JGeometry::TVec3<float> mShineShadowCoordinates; //0x0010
         float mShineShadowBase;                          //0x001C
         float mStepContext;                              //0x0020
-    } /*__attribute__((packed))*/ Light;
+    } Light;
 
     struct
     {
         JGeometry::TVec3<float> yoshiWaterSpeed; //0x0024
-    } /*__attribute__((packed))*/ Mario;
+    } Mario;
 
     struct
     {
@@ -2039,7 +2039,7 @@ struct CustomInfo
         s32 mCurrentWater;                    //0x0034
         bool mHadFludd;                       //0x0038
         u8 _01;                               //0x0039
-    } /*__attribute__((packed))*/ Fludd;
+    } Fludd;
 
     struct
     {
@@ -2051,7 +2051,7 @@ struct CustomInfo
         u8 mCurPlayerTimer[4]; //0x0056
         u8 mMaxPlayerTimer;    //0x005A
         bool mIsFreePlay;      //0x005B
-    } /*__attribute__((packed))*/ PlayerData;
+    } PlayerData;
 
     u32 *mCharacterHeap;                      //0x005C
     bool mIsCompletionRewards;                //0x0060
