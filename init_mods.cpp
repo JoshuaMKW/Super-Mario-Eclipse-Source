@@ -313,6 +313,8 @@ void initMario(TMario *gpMario, bool isMario)
 {
     SMEFile *file = gInfo.mFile;
     gpMario->mCustomInfo = (TMario::CustomInfo *)malloc(sizeof(TMario::CustomInfo), 32);
+    gpMario->mCustomInfo->mParams = nullptr;
+    gpMario->mCustomInfo->mBackUpParams = nullptr;
 
     if (file && file->FileHeader.mIsMario)
     {
@@ -339,21 +341,29 @@ void initMario(TMario *gpMario, bool isMario)
         }
     }
 
-    if (!isMario)
-    {
-        gpMario->mCustomInfo->mParams = nullptr;
-        return;
-    }
+    if (!isMario) return;
 
     gpMario->mCustomInfo->mParams = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc(0x804165A0), //mario
                                                                                      0x800049F5);                                ///params.bin
-
+    
     if (gpMario->mCustomInfo->mParams)
     {
+        gpMario->mCustomInfo->mBackUpParams = (MarioParamsFile *)malloc(sizeof(MarioParamsFile), 32);
+        gpMario->mCustomInfo->mBackUpParams = gpMario->mCustomInfo->mParams;
+
+        gpMario->mCustomInfo->mBackUpParams->Attributes.mBaseBounce1Multi = gpMario->mCustomInfo->mParams->Attributes.mBaseBounce1Multi *= sizeAvg;
+        gpMario->mCustomInfo->mParams->Attributes.mBaseBounce2Multi *= sizeAvg;
+        gpMario->mCustomInfo->mParams->Attributes.mBaseBounce3Multi *= sizeAvg;
+        gpMario->mCustomInfo->mParams->Attributes.mMaxFallNoDamageMulti *= sizeAvg;
+        gpMario->mCustomInfo->mParams->Attributes.mBaseJumpHeightMulti *= sizeAvg;
+        gpMario->mCustomInfo->mParams->Attributes.mSpeedMultiplier *= sizeAvg;
+
+
         float sizeX = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.x;
         float sizeY = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.y;
         float sizeZ = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.z;
         float sizeAvg = (sizeX + sizeY + sizeZ) / 3;
+
 
         gpMario->mCustomInfo->mParams->Attributes.mBaseBounce1Multi *= sizeAvg;
         gpMario->mCustomInfo->mParams->Attributes.mBaseBounce2Multi *= sizeAvg;

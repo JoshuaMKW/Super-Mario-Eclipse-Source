@@ -1284,6 +1284,9 @@ public:
             bool mHadFludd;                      //0x001A
             u8 _00;                              //0x001B
         } FluddHistory;                          //0x0014
+
+        float mSizeContext; //0x001C
+        MarioParamsFile *mBackUpParams; //0x0020
     };
 
     /*
@@ -1821,6 +1824,26 @@ public:
         u32 padding[14]; //0x0060
 
     } Attributes;
+
+    inline void operator =(MarioParamsFile *paramsFile)
+    {
+        memcpy(this, paramsFile, sizeof(MarioParamsFile));
+
+        /*
+        this->Attributes.mGravityMulti = paramsFile.Attributes.mGravityMulti;
+        this->Attributes.mBaseBounce1Multi = paramsFile.Attributes.mBaseBounce1Multi;
+        this->Attributes.mBaseBounce2Multi = paramsFile.Attributes.mBaseBounce2Multi;
+        this->Attributes.mBaseBounce3Multi = paramsFile.Attributes.mBaseBounce3Multi;
+        this->Attributes.mMaxFallNoDamageMulti = paramsFile.Attributes.mMaxFallNoDamageMulti;
+        this->Attributes.mBaseJumpHeightMulti = paramsFile.Attributes.mBaseJumpHeightMulti;
+        this->Attributes.mMultiJumpMultiplier = paramsFile.Attributes.mMultiJumpMultiplier;
+        this->Attributes.mMultiJumpFSpeedMulti = paramsFile.Attributes.mMultiJumpFSpeedMulti;
+        this->Attributes.mBaseBounce1Multi = paramsFile.Attributes.mBaseBounce1Multi;
+        this->Attributes.mSpeedMultiplier = paramsFile.Attributes.mSpeedMultiplier;
+
+        this->FluddAttrs
+        */
+    }
 };
 
 class Vector3D

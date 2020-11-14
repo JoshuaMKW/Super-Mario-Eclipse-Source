@@ -13171,11 +13171,36 @@ public:
         } FluddAttrs;
 
         float mWaterHealthMultiplier; //0x005C
-        u32 padding[16];              //0x0060
+        char *mNameOffset;            //0x0060
+        float mThrowPowerMultiplier;  //0x0064
+        s16 mWallHangMax;             //0x0068
+        bool mGoopAffected;           //0x006A
+        bool mCanHoldNPCs;            //0x006B
+        bool mCanClimbWalls;          //0x006C
+
+        u32 padding[14]; //0x0060
 
     } Attributes;
 
-    char mCharacterName[]; //0x00A0
+    inline void operator =(MarioParamsFile *paramsFile)
+    {
+        memcpy(this, paramsFile, sizeof(MarioParamsFile));
+
+        /*
+        this->Attributes.mGravityMulti = paramsFile.Attributes.mGravityMulti;
+        this->Attributes.mBaseBounce1Multi = paramsFile.Attributes.mBaseBounce1Multi;
+        this->Attributes.mBaseBounce2Multi = paramsFile.Attributes.mBaseBounce2Multi;
+        this->Attributes.mBaseBounce3Multi = paramsFile.Attributes.mBaseBounce3Multi;
+        this->Attributes.mMaxFallNoDamageMulti = paramsFile.Attributes.mMaxFallNoDamageMulti;
+        this->Attributes.mBaseJumpHeightMulti = paramsFile.Attributes.mBaseJumpHeightMulti;
+        this->Attributes.mMultiJumpMultiplier = paramsFile.Attributes.mMultiJumpMultiplier;
+        this->Attributes.mMultiJumpFSpeedMulti = paramsFile.Attributes.mMultiJumpFSpeedMulti;
+        this->Attributes.mBaseBounce1Multi = paramsFile.Attributes.mBaseBounce1Multi;
+        this->Attributes.mSpeedMultiplier = paramsFile.Attributes.mSpeedMultiplier;
+
+        this->FluddAttrs
+        */
+    }
 };
 
 class Vector3D
