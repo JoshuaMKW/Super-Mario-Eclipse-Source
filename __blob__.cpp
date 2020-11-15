@@ -12871,7 +12871,7 @@ class TGameSequence
 {
 
 public:
-    enum AREA : u32
+    enum AREA : u8
     {
         AIRPORT = 0x0,
         DOLPIC = 0x1,
@@ -12920,7 +12920,8 @@ public:
 
     AREA mAreaID;
     u8 mEpisodeID;
-} __attribute__((packed));
+    u16 _00;
+};
 
 class TApplication
 {
