@@ -12920,7 +12920,7 @@ public:
 
     AREA mAreaID;
     u8 mEpisodeID;
-};
+} __attribute__((packed));
 
 class TApplication
 {
