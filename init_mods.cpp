@@ -71,6 +71,31 @@ void resetGlobalValues()
 //0x802998B4
 void initFileMods()
 {
+    TApplication *gpApplication = (TApplication *)TApplicationInstance;
+    TMarioGamePad *gpGamePad = gpApplication->mGamePad1;
+    s8 characterID;
+
+    switch (gpGamePad->getInput())
+    {
+    case TMarioGamePad::BUTTONS::Z:
+        characterID = 0;
+        break;
+    case TMarioGamePad::BUTTONS::DPAD_UP:
+        characterID = 1;
+        break;
+    case TMarioGamePad::BUTTONS::DPAD_DOWN:
+        characterID = 2;
+        break;
+    case TMarioGamePad::BUTTONS::DPAD_LEFT:
+        characterID = 3;
+        break;
+    case TMarioGamePad::BUTTONS::DPAD_RIGHT:
+        characterID = 4;
+        break;
+    default:
+        characterID = -1;
+    }
+
     u32 *marioVolumeData = (u32 *)getVolume__13JKRFileLoaderFPCc(0x804165A0);        //"mario"
     u32 *params = (u32 *)getResource__10JKRArchiveFPCc(marioVolumeData, 0x80004A01); //"/params.szs"
 
@@ -95,14 +120,16 @@ void initFileMods()
         folder[16] = NULL;
         file = SMEFile::loadFile(SMEFile::parseExtension(folder, stage, true));
     }
+    
+    if (gInfo.mFile = file; gInfo.mFile)
+    {
+        characterID = characterID < 0 ? gInfo.mFile->FileHeader.mPlayerID : characterID;
+    }
 
-    gInfo.mFile = file;
-
-    if (gInfo.mFile && gInfo.mFile->FileHeader.mPlayerID != 0xFF)
+    if (characterID >= 0)
     {
         //Attempt to swap character data
-
-        sprintf(buffer, (char *)0x803A4284, gInfo.mFile->FileHeader.mPlayerID); //"/data/chr%d.arc"
+        sprintf(buffer, (char *)0x803A4284, characterID); //"/data/chr%d.arc"
         strcpy(strstr(buffer, (char *)0x8041678C), (char *)0x80416794);         //".arc", ".szs"
 
         if (DVDConvertPathToEntrynum(buffer) >= 0)
@@ -356,23 +383,15 @@ void initMario(TMario *gpMario, bool isMario)
         float sizeX = baseParams->Attributes.mSizeMultiplier.x;
         float sizeY = baseParams->Attributes.mSizeMultiplier.y;
         float sizeZ = baseParams->Attributes.mSizeMultiplier.z;
-        float sizeAvg = (sizeX + sizeY + sizeZ) / 3;
+        float sizeScalar = ((sizeX + sizeY + sizeZ) / 3) * 0.8125;
 
-        params->Attributes.mBaseBounce2Multi *= sizeAvg;
-        params->Attributes.mBaseBounce3Multi *= sizeAvg;
-        params->Attributes.mMaxFallNoDamageMulti *= sizeAvg;
-        params->Attributes.mBaseJumpHeightMulti *= sizeAvg;
-        params->Attributes.mSpeedMultiplier *= sizeAvg;
-
-
-
-
-        params->Attributes.mBaseBounce1Multi *= sizeAvg;
-        params->Attributes.mBaseBounce2Multi *= sizeAvg;
-        params->Attributes.mBaseBounce3Multi *= sizeAvg;
-        params->Attributes.mMaxFallNoDamageMulti *= sizeAvg;
-        params->Attributes.mBaseJumpHeightMulti *= sizeAvg;
-        params->Attributes.mSpeedMultiplier *= sizeAvg;
+        params->Attributes.mBaseBounce1Multi *= sizeScalar;
+        params->Attributes.mBaseBounce2Multi *= sizeScalar;
+        params->Attributes.mBaseBounce3Multi *= sizeScalar;
+        params->Attributes.mMaxFallNoDamageMulti *= sizeScalar;
+        params->Attributes.mBaseJumpHeightMulti *= sizeScalar;
+        params->Attributes.mSpeedMultiplier *= sizeScalar;
+        params->Attributes.mThrowPowerMultiplier *= sizeScalar;
 
         gpMario->mGravity *= params->Attributes.mGravityMulti;
         gpMario->mCustomInfo->mTerminalVelocity = -75 * params->Attributes.mGravityMulti;
@@ -389,10 +408,13 @@ void initMario(TMario *gpMario, bool isMario)
         gpMario->mBaseBounceSpeed1 *= params->Attributes.mBaseBounce1Multi;
         gpMario->mBaseBounceSpeed2 *= params->Attributes.mBaseBounce2Multi;
         gpMario->mBaseBounceSpeed3 *= params->Attributes.mBaseBounce3Multi;
+        gpMario->mThrowPower *= params->Attributes.mThrowPowerMultiplier;
         gpMario->mHealth = params->Attributes.mHealth;
         gpMario->mMaxHealth = params->Attributes.mMaxHealth;
         gpMario->mOBStep = params->Attributes.mOBStep;
         gpMario->mOBMax = params->Attributes.mOBMax;
+        gpMario->mWallHangTimer = params->Attributes.mWallHangMax;
+        gpMario->mWallAnimTimer = max(0, params->Attributes.mWallHangMax);
 
         gpMario->mAttributes.mGainHelmet = params->Attributes.mMarioHasHelmet;
         gpMario->mAttributes.mHasFludd = params->Attributes.mCanUseFludd;

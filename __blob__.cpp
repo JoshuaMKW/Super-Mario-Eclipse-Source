@@ -12920,7 +12920,6 @@ public:
 
     AREA mAreaID;
     u8 mEpisodeID;
-    u16 _00;
 };
 
 class TApplication

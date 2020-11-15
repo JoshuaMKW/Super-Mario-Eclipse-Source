@@ -18,6 +18,6 @@ void modifyRangeToSize(float *params, float *saveParams)
         maxSize = max(maxSize, sizeZ);
         params[0x8 / 4] *= (maxSize * 0.5);
         params[0xC / 4] *= (maxSize * 0.5);
-        params[0x24 / 4] *= (maxSize * 0.5);
+        params[0x24 / 4] *= (maxSize * 0.9375);
     }
 }
