@@ -11382,6 +11382,12 @@ using f64 = double;
 #define StreamPitch 0x80417248
 #define StreamSpeed 0x8041731C
 
+static inline void flushAddr(void *addr)
+{
+    dcbf(addr);
+    icbi(addr);
+}
+
 template <typename T>
 struct RGB
 {
@@ -11693,17 +11699,17 @@ class J3DModel
 {
 
 public:
-    u32 _00[0x14 / 4]; //0x0000
+    u32 _00[0x14 / 4];          //0x0000
     Quaternion mSizeMultiplier; //0x0014
-    u32 _01[0x40 / 4]; //0x0018
-    Matrix3D *mJointArray[]; //0x0058
+    u32 _01[0x40 / 4];          //0x0018
+    Matrix3D *mJointArray[];    //0x0058
 };
 
 class M3UModelMario
 {
 
 public:
-    void *_00[2]; //0x0000
+    void *_00[2];     //0x0000
     J3DModel *mModel; //0x0008
 };
 
@@ -11781,7 +11787,7 @@ class THitActor : public JDrama::TActor
 public:
     THitActor **mCollidingObjs; //0x0044
     s16 mNumObjs;               //0x0048
-    s16 mMaxObjs;               //0x004
+    s16 mMaxObjs;               //0x004A
     u32 mObjectID;              //0x004C
     float mAttackRadius;        //0x0050
     float mAttackHeight;        //0x0054
@@ -12645,8 +12651,8 @@ public:
             u8 _00;                              //0x001B
         } FluddHistory;                          //0x0014
 
-        float mSizeContext; //0x001C
-        MarioParamsFile *mBackUpParams; //0x0020
+        float mSizeContext;            //0x001C
+        MarioParamsFile *_mBaseParams; //0x0020
     };
 
     /*
@@ -12765,7 +12771,9 @@ public:
     float mBaseBounceSpeed2;         //0x07E4
     u32 _21[0x10 / 4];               //0x07E8
     float mBaseBounceSpeed3;         //0x07F8
-    u32 _22[0xC4 / 4];               //0x07FC
+    u32 _22[0x24 / 4];               //0x07FC
+    float mThrowPower;               //0x0820
+    u32 _23[0x9C / 4];               //0x0824
     float mMaxFallNoDamage;          //0x08C0
     u32 _23[0xC4 / 4];               //0x08C4
     u16 mOBStep;                     //0x0988
@@ -13068,7 +13076,7 @@ public:
             }
         }
 
-        if (DVDOpen(stringPath, handle) == false)
+        if (!DVDOpen(stringPath, handle))
             return nullptr;
 
         if (DVDReadPrio(handle, tmp, 32, 0, 2) < DVD_ERROR_OK)
@@ -13080,14 +13088,14 @@ public:
         u32 *loadAddress;
         if (tmp->FileHeader.mLoadAddress == nullptr)
         {
-            loadAddress = (u32 *)malloc(((sizeof(SMEFile) + 31) & ~32) + 32, 32); //Create an allocation
+            loadAddress = (u32 *)malloc(sizeof(SMEFile) + 32, 32); //Create an allocation
         }
         else
         {
             loadAddress = tmp->FileHeader.mLoadAddress;
         }
 
-        if (DVDReadPrio(handle, loadAddress, tmp->FileHeader.mFileSize, 0, 2) < DVD_ERROR_OK)
+        if (DVDReadPrio(handle, ((u32)loadAddress + 31) & ~32, tmp->FileHeader.mFileSize, 0, 2) < DVD_ERROR_OK)
         {
             DVDClose(handle);
             return nullptr;
@@ -13173,37 +13181,16 @@ public:
             u16 _03;                      //0x005A
         } FluddAttrs;
 
-        float mWaterHealthMultiplier; //0x005C
-        char *mNameOffset;            //0x0060
-        float mThrowPowerMultiplier;  //0x0064
-        s16 mWallHangMax;             //0x0068
-        bool mGoopAffected;           //0x006A
-        bool mCanHoldNPCs;            //0x006B
-        bool mCanClimbWalls;          //0x006C
-
-        u32 padding[14]; //0x0060
+        float mWaterHealthMultiplier;   //0x005C
+        char *mNameOffset;              //0x0060
+        float mThrowPowerMultiplier;    //0x0064
+        float mSlideStrengthMultiplier; //0x0068
+        s16 mWallHangMax;               //0x006C
+        bool mGoopAffected;             //0x006E
+        bool mCanHoldNPCs;              //0x006F
+        bool mCanClimbWalls;            //0x0070
 
     } Attributes;
-
-    void operator << (MarioParamsFile *paramsFile)
-    {
-        memcpy(this, paramsFile, sizeof(MarioParamsFile));
-
-        /*
-        this->Attributes.mGravityMulti = paramsFile.Attributes.mGravityMulti;
-        this->Attributes.mBaseBounce1Multi = paramsFile.Attributes.mBaseBounce1Multi;
-        this->Attributes.mBaseBounce2Multi = paramsFile.Attributes.mBaseBounce2Multi;
-        this->Attributes.mBaseBounce3Multi = paramsFile.Attributes.mBaseBounce3Multi;
-        this->Attributes.mMaxFallNoDamageMulti = paramsFile.Attributes.mMaxFallNoDamageMulti;
-        this->Attributes.mBaseJumpHeightMulti = paramsFile.Attributes.mBaseJumpHeightMulti;
-        this->Attributes.mMultiJumpMultiplier = paramsFile.Attributes.mMultiJumpMultiplier;
-        this->Attributes.mMultiJumpFSpeedMulti = paramsFile.Attributes.mMultiJumpFSpeedMulti;
-        this->Attributes.mBaseBounce1Multi = paramsFile.Attributes.mBaseBounce1Multi;
-        this->Attributes.mSpeedMultiplier = paramsFile.Attributes.mSpeedMultiplier;
-
-        this->FluddAttrs
-        */
-    }
 };
 
 class Vector3D
@@ -13412,7 +13399,7 @@ struct CustomInfo
     struct
     {
         JGeometry::TVec3<float> yoshiWaterSpeed; //0x0024
-    }  Mario;
+    } Mario;
 
     struct
     {
@@ -13422,7 +13409,6 @@ struct CustomInfo
         s32 mCurrentWater;                    //0x0034
         bool mHadFludd;                       //0x0038
         u8 _01;                               //0x0039
-        u16 _02;                              //0x003A
     } Fludd;
 
     struct
@@ -13444,7 +13430,7 @@ struct CustomInfo
     bool mIsAudioStreamAllowed;               //0x0063
     u32 *mPRMFile;                            //0x0064
     WarpCollisionList *mWarpColArray;         //0x0068
-    MarioParamsFile *mCharacterFile;          //0x006C
+    MarioParamsFile *_mCharacterFile;         //0x006C
     WarpCollisionList *mWarpColPreserveArray; //0x0070
     u32 *mGame6Heap;                          //0x0074
 };

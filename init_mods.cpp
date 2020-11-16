@@ -40,13 +40,15 @@ u32 setupMarioDatas(char *filepath)
     return DVDConvertPathToEntrynum(filepath);
 }
 
-//0x802A714C
-u32 *getPrivateHeap()
+//0x802A716C
+u32 *initFirstModel(char *path, u32 unk_1, u32 unk_2, u32 unk_3, void *JKRHeap, u32 unk_4, u32 unk_5, u32 unk_6)
 {
-    return gInfo.mCharacterHeap;
-}
+    JKRHeap = gInfo.mCharacterHeap ? gInfo.mCharacterHeap : JKRHeap;
+    u32 *file = (u32 *)loadToMainRAM__12JKRDvdRipperFPCcPUc15JKRExpandSwitchUlP7JKRHeapQ212JKRDvdRipper15EAllocDirectionUlPi(path, unk_1, unk_2, unk_3, JKRHeap, unk_4, unk_5, unk_6);
 
-//kWrite32(0x802A7148, 0x60000000);
+    hmalloc(gInfo.mCharacterHeap, file[1] & -32, 32);
+    return file;
+}
 
 void resetGlobalValues()
 {
@@ -58,10 +60,10 @@ void resetGlobalValues()
     juiceColor[0] = {0xFE, 0xA8, 0x02, 0x6E}; //Yoshi Juice rgba
     juiceColor[1] = {0x9B, 0x01, 0xFD, 0x6E};
     juiceColor[2] = {0xFD, 0x62, 0xA7, 0x6E};
-    juiceColor[3] = {0x40, 0xA1, 0x24, 0xFF};
-    yoshiColor[0] = {0xFF, 0x8C, 0x1C, 0xFF}; //Yoshi rgba
-    yoshiColor[1] = {0xAA, 0x4C, 0xFF, 0xFF};
-    yoshiColor[2] = {0xFF, 0xA0, 0xBE, 0xFF};
+    yoshiColor[0] = {0x40, 0xA1, 0x24, 0xFF}; //Yoshi rgba
+    yoshiColor[1] = {0xFF, 0x8C, 0x1C, 0xFF};
+    yoshiColor[2] = {0xAA, 0x4C, 0xFF, 0xFF};
+    yoshiColor[3] = {0xFF, 0xA0, 0xBE, 0xFF};
     *(float *)0x80415CA8 = 0.25; //Mario overall speed
     *(float *)0x8040C1C0 = 0.75;
     *(float *)0x80417248 = 1;
@@ -111,7 +113,8 @@ void initFileMods()
     char folder[] = "/data/scene/sme/";
     const char *stage = getStageName((TApplication *)TApplicationInstance);
 
-    if (!stage) return;
+    if (!stage)
+        return;
 
     SMEFile *file = SMEFile::loadFile(SMEFile::parseExtension(folder, stage, false));
 
@@ -120,24 +123,26 @@ void initFileMods()
         folder[16] = NULL;
         file = SMEFile::loadFile(SMEFile::parseExtension(folder, stage, true));
     }
-    
+
     if (gInfo.mFile = file; gInfo.mFile)
     {
-        characterID = characterID < 0 ? gInfo.mFile->FileHeader.mPlayerID : characterID;
+        characterID = characterID == 0xFF ? gInfo.mFile->FileHeader.mPlayerID : characterID;
     }
 
     if (characterID >= 0)
     {
         //Attempt to swap character data
-        sprintf(buffer, (char *)0x803A4284, characterID); //"/data/chr%d.arc"
-        strcpy(strstr(buffer, (char *)0x8041678C), (char *)0x80416794);         //".arc", ".szs"
+        sprintf(buffer, (char *)0x803A4284, characterID);               //"/data/chr%d.arc"
+        strcpy(strstr(buffer, (char *)0x8041678C), (char *)0x80416794); //".arc", ".szs"
 
         if (DVDConvertPathToEntrynum(buffer) >= 0)
         {
-            free((void *)*(u32 *)ARCBufferMario);
+            freeAll__10JKRExpHeapFv(gInfo.mCharacterHeap);
 
             marioData = (u32 *)loadToMainRAM__12JKRDvdRipperFPCcPUc15JKRExpandSwitchUlP7JKRHeapQ212JKRDvdRipper15EAllocDirectionUlPi(buffer, 0, 1, 0, gInfo.mCharacterHeap, 1, 0, 0);
             *(u32 *)ARCBufferMario = (u32)marioData;
+
+            hmalloc(gInfo.mCharacterHeap, marioData[1] & -32, 32);
 
             __dt__13JKRMemArchiveFv(marioVolumeData);
             __ct__13JKRMemArchiveFPvUl15JKRMemBreakFlag(marioVolumeData, *(u32 *)ARCBufferMario, 0, 0);
@@ -269,18 +274,6 @@ void initFludd(TMario *gpMario)
 {
     SMEFile *stagefile = gInfo.mFile;
 
-    if (stagefile && stagefile->FileHeader.mIsFludd)
-    {
-        if (stagefile->Fludd.mIsColorWater)
-        {
-            waterColor = stagefile->Fludd.mWaterColor;
-        }
-        gpMario->mFludd->mCurrentNozzle = stagefile->Fludd.mPrimaryNozzle;
-        gpMario->mFludd->mSecondNozzle = stagefile->Fludd.mSecondaryNozzle;
-
-        gpMario->mFludd->mCurrentWater = gpMario->mFludd->mNozzleList[(u8)gpMario->mFludd->mCurrentNozzle]->mMaxWater;
-    }
-
     if (MarioParamsFile *params = gpMario->mCustomInfo->mParams; params)
     {
         waterColor = params->Attributes.FluddAttrs.mWaterColor;
@@ -316,6 +309,18 @@ void initFludd(TMario *gpMario)
                 gpMario->mFludd->mSecondNozzle = gpMario->mFludd->mCurrentNozzle;
             }
         }
+    }
+
+    if (stagefile && stagefile->FileHeader.mIsFludd)
+    {
+        if (stagefile->Fludd.mIsColorWater)
+        {
+            waterColor = stagefile->Fludd.mWaterColor;
+        }
+        gpMario->mFludd->mCurrentNozzle = stagefile->Fludd.mPrimaryNozzle;
+        gpMario->mFludd->mSecondNozzle = stagefile->Fludd.mSecondaryNozzle;
+
+        gpMario->mFludd->mCurrentWater = gpMario->mFludd->mNozzleList[(u8)gpMario->mFludd->mCurrentNozzle]->mMaxWater;
     }
 }
 
@@ -368,11 +373,12 @@ void initMario(TMario *gpMario, bool isMario)
         }
     }
 
-    if (!isMario) return;
+    if (!isMario)
+        return;
 
     gpMario->mCustomInfo->_mBaseParams = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc(0x804165A0), //mario
-                                                                                     0x800049F5);                                ///params.bin
-    
+                                                                                          0x800049F5);                                ///params.bin
+
     if (MarioParamsFile *baseParams = gpMario->mCustomInfo->_mBaseParams; baseParams)
     {
         gpMario->mCustomInfo->mParams = (MarioParamsFile *)malloc(sizeof(MarioParamsFile), 32);
@@ -435,7 +441,8 @@ void initYoshi()
     TMario *gpMario = (TMario *)*(u32 *)TMarioInstance;
     TYoshi *gpYoshi = gpMario->mYoshi;
 
-    if (!file || !file->FileHeader.mIsYoshi) return;
+    if (!file || !file->FileHeader.mIsYoshi)
+        return;
 
     RGBA<u8> *juiceColor = (RGBA<u8> *)YoshiJuiceColor;
     RGBA<u8> *yoshiColor = (RGBA<u8> *)YoshiColor;
@@ -498,7 +505,8 @@ static void parseWarpLinks(TMapCollisionData *col, WarpCollisionList *links, u32
             links->mColList[curDataIndex] = {(TBGCheckData *)&col->mFloorData->mFloorTriangles[i],
                                              (u8)(col->mFloorData->mFloorTriangles[i].mValue4 >> 8),
                                              (u8)col->mFloorData->mFloorTriangles[i].mValue4};
-            if (curDataIndex >= 0xFF) break;
+            if (curDataIndex >= 0xFF)
+                break;
             ++curDataIndex;
         }
     }

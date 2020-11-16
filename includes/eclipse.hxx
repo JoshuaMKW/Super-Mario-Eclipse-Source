@@ -1722,14 +1722,14 @@ public:
         u32 *loadAddress;
         if (tmp->FileHeader.mLoadAddress == nullptr)
         {
-            loadAddress = (u32 *)malloc(((sizeof(SMEFile) + 31) & ~32) + 32, 32); //Create an allocation
+            loadAddress = (u32 *)malloc(sizeof(SMEFile) + 32, 32); //Create an allocation
         }
         else
         {
             loadAddress = tmp->FileHeader.mLoadAddress;
         }
 
-        if (DVDReadPrio(handle, loadAddress, tmp->FileHeader.mFileSize, 0, 2) < DVD_ERROR_OK)
+        if (DVDReadPrio(handle, ((u32)loadAddress + 31) & ~32, tmp->FileHeader.mFileSize, 0, 2) < DVD_ERROR_OK)
         {
             DVDClose(handle);
             return nullptr;
@@ -2064,7 +2064,7 @@ struct CustomInfo
     bool mIsAudioStreamAllowed;               //0x0063
     u32 *mPRMFile;                            //0x0064
     WarpCollisionList *mWarpColArray;         //0x0068
-    MarioParamsFile *mCharacterFile;          //0x006C
+    MarioParamsFile *_mCharacterFile;         //0x006C
     WarpCollisionList *mWarpColPreserveArray; //0x0070
     u32 *mGame6Heap;                          //0x0074
 };

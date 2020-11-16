@@ -299,6 +299,7 @@ void checkForFreeEggCard(TEggYoshi *gpEgg)
 //0x8028121C
 void saveNozzles(TYoshi *gpYoshi, TMario *gpMario)
 {
+    asm ("mr 4, 31");
     gpMario->mCustomInfo->FluddHistory.mMainNozzle = gpMario->mFludd->mCurrentNozzle;
     gpMario->mCustomInfo->FluddHistory.mSecondNozzle = gpMario->mFludd->mSecondNozzle;
     gpMario->mCustomInfo->FluddHistory.mWaterLevel = gpMario->mFludd->mCurrentWater;
