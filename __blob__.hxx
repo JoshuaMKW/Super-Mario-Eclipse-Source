@@ -13101,7 +13101,7 @@ public:
             return nullptr;
         }
         DVDClose(handle);
-        return (SMEFile *)loadAddress;
+        return (SMEFile *)(((u8)loadAddress + 31) & ~32);
     }
 
     static char *parseExtension(char *filepath, const char *stage, bool generalize = false)
