@@ -1729,7 +1729,7 @@ public:
             loadAddress = tmp->FileHeader.mLoadAddress;
         }
 
-        if (DVDReadPrio(handle, ((u32)loadAddress + 31) & ~32, tmp->FileHeader.mFileSize, 0, 2) < DVD_ERROR_OK)
+        if (DVDReadPrio(handle, ((u8)loadAddress + 31) & ~32, tmp->FileHeader.mFileSize, 0, 2) < DVD_ERROR_OK)
         {
             DVDClose(handle);
             return nullptr;
