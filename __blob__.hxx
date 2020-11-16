@@ -11280,7 +11280,6 @@ using f64 = double;
 #define DVD_STATE_WRONG_DISK 6
 
 #define MAX_SHINES 300
-#define NULL 0
 #define MEM1_LO (u32 *)0x80000000
 #define MEM1_HI (u32 *)0x81800000
 
@@ -13095,13 +13094,13 @@ public:
             loadAddress = tmp->FileHeader.mLoadAddress;
         }
 
-        if (DVDReadPrio(handle, ((u8)loadAddress + 31) & ~32, tmp->FileHeader.mFileSize, 0, 2) < DVD_ERROR_OK)
+        if (DVDReadPrio(handle, ((u32)loadAddress + 31) & ~32, tmp->FileHeader.mFileSize, 0, 2) < DVD_ERROR_OK)
         {
             DVDClose(handle);
             return nullptr;
         }
         DVDClose(handle);
-        return (SMEFile *)(((u8)loadAddress + 31) & ~32);
+        return (SMEFile *)(((u32)loadAddress + 31) & ~32);
     }
 
     static char *parseExtension(char *filepath, const char *stage, bool generalize = false)
