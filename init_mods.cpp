@@ -407,6 +407,7 @@ void initMario(TMario *gpMario, bool isMario)
         gpMario->mModelData->mModel->mSizeMultiplier.y *= sizeY;
         gpMario->mModelData->mModel->mSizeMultiplier.z *= sizeZ;
         gpMario->mOceanOfs *= sizeY;
+        gpMario->mWaterJumpHeightDifMax *= sizeY;
 
         gpMario->mWaterHealthDrainSpd /= params->Attributes.mWaterHealthMultiplier;
         gpMario->mWaterHealthScubaDrainSpd /= params->Attributes.mWaterHealthMultiplier;
