@@ -53,7 +53,6 @@
 #define DVD_STATE_WRONG_DISK 6
 
 #define MAX_SHINES 300
-#define NULL 0
 #define MEM1_LO (u32 *)0x80000000
 #define MEM1_HI (u32 *)0x81800000
 

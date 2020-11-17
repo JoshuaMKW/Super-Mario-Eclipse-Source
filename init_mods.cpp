@@ -70,7 +70,7 @@ void resetGlobalValues()
     *(float *)0x8041731C = 1;
 }
 
-//0x802998B4
+//0x802998B4 -TODO: FIX ALIGNMENT BUG
 void initFileMods()
 {
     TApplication *gpApplication = (TApplication *)TApplicationInstance;
@@ -120,7 +120,7 @@ void initFileMods()
 
     if (!file)
     {
-        folder[16] = NULL;
+        folder[16] = 0;
         file = SMEFile::loadFile(SMEFile::parseExtension(folder, stage, true));
     }
 
