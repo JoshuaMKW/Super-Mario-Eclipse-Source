@@ -12790,7 +12790,7 @@ public:
     float mThrowPower;               //0x0820
     u32 _23[0x9C / 4];               //0x0824
     float mMaxFallNoDamage;          //0x08C0
-    u32 _23a[0xC4 / 4];               //0x08C4
+    u32 _23a[0xC4 / 4];              //0x08C4
     u16 mOBStep;                     //0x0988
     u16 _24;                         //0x098A
     u32 _25[0x10 / 4];               //0x098C
