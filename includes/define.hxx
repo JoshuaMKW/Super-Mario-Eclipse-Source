@@ -2,10 +2,10 @@
 
 #include "funcs.hxx"
 
-#define malloc(size, alignment) __nw__FUl(size, alignment)
+#define malloc(size, alignment) __nw__FUli(size, alignment)
 #define hmalloc(heap, size, alignment) __nw__FUlP7JKRHeapi(size, heap, alignment)
-#define calloc(size, alignment) memset(__nw__FUl(size, alignment), 0, size)
-#define hcalloc(heap, size, alignment) memset(__nw__FUlP7JKRHeapi(size, heap, alignment), 0, size)
+#define calloc(size, alignment) memset(malloc(size, alignment), 0, size)
+#define hcalloc(heap, size, alignment) memset(hmalloc(size, heap, alignment), 0, size)
 #define free(pointer) __dl__FPv(pointer)
 #define angleToRadians ((float (*)(float angle))0x80003400)
 #define radiansToAngle ((float (*)(float angle))0x8000341C)

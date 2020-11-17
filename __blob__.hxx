@@ -11229,10 +11229,10 @@ using f64 = double;
 #define __THPAudioGetNewSample ((u32(*)(...))0x80372FE8)
 #define __THPAudioInitialize ((u32(*)(...))0x80373078)
 
-#define malloc(size, alignment) __nw__FUl(size, alignment)
+#define malloc(size, alignment) __nw__FUli(size, alignment)
 #define hmalloc(heap, size, alignment) __nw__FUlP7JKRHeapi(size, heap, alignment)
-#define calloc(size, alignment) memset(__nw__FUl(size, alignment), 0, size)
-#define hcalloc(heap, size, alignment) memset(__nw__FUlP7JKRHeapi(size, heap, alignment), 0, size)
+#define calloc(size, alignment) memset(malloc(size, alignment), 0, size)
+#define hcalloc(heap, size, alignment) memset(hmalloc(size, heap, alignment), 0, size)
 #define free(pointer) __dl__FPv(pointer)
 #define angleToRadians ((float (*)(float angle))0x80003400)
 #define radiansToAngle ((float (*)(float angle))0x8000341C)
@@ -13063,9 +13063,9 @@ public:
 
     static SMEFile *loadFile(const char *stringPath)
     {
-        u32 _dvdHandle[0x3C / 4];
-        SMEFile _buffer;
-        SMEFile *smeFile = (SMEFile *)malloc((sizeof(SMEFile) + 31) & -32, -32);
+        u32 handle[0x3C / 4];
+        char buffer[(sizeof(SMEFile) + 63) & ~(32)];
+        SMEFile *tmp = (SMEFile *)(((u32)buffer + 31) & ~(32));
 
         for (u32 i = 0; DVDGetDriveStatus() != DVD_STATE_END; ++i)
         {
@@ -13075,32 +13075,32 @@ public:
             }
         }
 
-        if (!DVDOpen(stringPath, _dvdHandle))
+        if (!DVDOpen(stringPath, handle))
             return nullptr;
 
-        if (DVDReadPrio(_dvdHandle, _buffer, 32, 0, 2) < DVD_ERROR_OK)
+        if (DVDReadPrio(handle, tmp, 32, 0, 2) < DVD_ERROR_OK)
         {
-            DVDClose(_dvdHandle);
+            DVDClose(handle);
             return nullptr;
         }
 
         u32 *loadAddress;
-        if (_buffer.FileHeader.mLoadAddress == nullptr)
+        if (tmp->FileHeader.mLoadAddress == nullptr)
         {
-            loadAddress = (u32 *)smeFile; //Create an allocation
+            loadAddress = (u32 *)malloc(sizeof(SMEFile) + 31, 32); //Create an allocation
         }
         else
         {
-            loadAddress = _buffer.FileHeader.mLoadAddress;
+            loadAddress = tmp->FileHeader.mLoadAddress;
         }
 
-        if (DVDReadPrio(_dvdHandle, ((u32)loadAddress + 31) & -32, _buffer.FileHeader.mFileSize, 0, 2) < DVD_ERROR_OK)
+        if (DVDReadPrio(handle, loadAddress, tmp->FileHeader.mFileSize, 0, 2) < DVD_ERROR_OK)
         {
-            DVDClose(_dvdHandle);
+            DVDClose(handle);
             return nullptr;
         }
-        DVDClose(_dvdHandle);
-        return (SMEFile *)(((u32)loadAddress + 31) & -32);
+        DVDClose(handle);
+        return (SMEFile *)loadAddress;
     }
 
     static char *parseExtension(char *filepath, const char *stage, bool generalize = false)
