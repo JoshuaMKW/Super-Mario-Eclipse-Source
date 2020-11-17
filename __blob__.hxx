@@ -13064,7 +13064,7 @@ public:
     static SMEFile *loadFile(const char *stringPath)
     {
         u32 handle[0x3C / 4];
-        char buffer[(sizeof(SMEFile) + 63) & ~(32)];
+        char buffer[(sizeof(SMEFile) + 63) & -32];
         SMEFile *tmp = (SMEFile *)(((u32)buffer + 31) & -32);
 
         for (u32 i = 0; DVDGetDriveStatus() != DVD_STATE_END; ++i)
