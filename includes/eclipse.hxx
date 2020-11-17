@@ -1438,7 +1438,7 @@ public:
     float mDefaultAccelerationMul;   //0x0B68
     u32 _30[0x24 / 4];               //0x0B6C
     float mSideFlipStrength;         //0x0B90
-    u32 _30a[0x5BC / 4];             //0x0B94
+    u32 _30a[0x5AC / 4];             //0x0B94
     float mWaterJumpHeightDifMax;    //0x1140
     u32 _30aa[0x24 / 4];             //0x1144
     float mOceanOfs;                 //0x1168
