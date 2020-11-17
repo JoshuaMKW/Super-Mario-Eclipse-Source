@@ -1287,6 +1287,22 @@ public:
 
         float mSizeContext;            //0x001C
         MarioParamsFile *_mBaseParams; //0x0020
+
+        struct
+        {
+            float mGravity;
+            float mBaseBounce1Multi;
+            float mBaseBounce2Multi;
+            float mBaseBounce3Multi;
+            float mMaxFallNoDamageMulti;
+            float mBaseJumpHeightMulti;
+            float mSpeedMultiplier;
+            float mThrowPowerMultiplier;
+
+            float mTerminalVelocity;
+            float mMaxFallNoDamage;
+        } DefaultAttrs;
+        
     };
 
     /*
@@ -1423,7 +1439,9 @@ public:
     float mDefaultAccelerationMul;   //0x0B68
     u32 _30[0x24 / 4];               //0x0B6C
     float mSideFlipStrength;         //0x0B90
-    u32 _30a[0x5D4 / 4];             //0x0B94
+    u32 _30a[0x5BC / 4];             //0x0B94
+    float mWaterJumpHeightDifMax;    //0x1140
+    u32 _30aa[0x24 / 4];             //0x1144
     float mOceanOfs;                 //0x1168
     u32 _30b[0x100 / 4];             //0x116C
     float mWaterHealthDrainSpd;      //0x126C

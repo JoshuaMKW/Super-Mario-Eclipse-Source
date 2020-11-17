@@ -16,8 +16,11 @@ void modifyRangeToSize(float *params, float *saveParams)
 
         maxSize = max(sizeX, sizeY);
         maxSize = max(maxSize, sizeZ);
-        params[0x8 / 4] *= (maxSize * 0.5);
-        params[0xC / 4] *= (maxSize * 0.5);
-        params[0x24 / 4] *= (maxSize * 0.9375);
+        if (!gpMario->mYoshi || gpMario->mYoshi->mState != TYoshi::STATE::MOUNTED || maxSize > 1)
+        {
+            params[0x8 / 4] *= (float)((float)(maxSize * 0.5) + (float)(1 - 0.5));
+            params[0xC / 4] *= (float)((float)(maxSize * 0.5) + (float)(1 - 0.5));
+            params[0x24 / 4] *= (float)((float)(maxSize * 0.9375) + (float)(1 - 0.9375));
+        }
     }
 }

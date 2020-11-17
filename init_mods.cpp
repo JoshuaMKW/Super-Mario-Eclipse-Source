@@ -373,8 +373,7 @@ void initMario(TMario *gpMario, bool isMario)
         }
     }
 
-    if (!isMario)
-        return;
+    if (!isMario) return;
 
     gpMario->mCustomInfo->_mBaseParams = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc(0x804165A0), //mario
                                                                                           0x800049F5);                                ///params.bin
@@ -389,7 +388,7 @@ void initMario(TMario *gpMario, bool isMario)
         float sizeX = baseParams->Attributes.mSizeMultiplier.x;
         float sizeY = baseParams->Attributes.mSizeMultiplier.y;
         float sizeZ = baseParams->Attributes.mSizeMultiplier.z;
-        float sizeScalar = ((sizeX + sizeY + sizeZ) / 3) * 0.8125;
+        float sizeScalar = (float)(((sizeX + sizeY + sizeZ) / 3) * 0.5) + (float)(1 - 0.5);
 
         params->Attributes.mBaseBounce1Multi *= sizeScalar;
         params->Attributes.mBaseBounce2Multi *= sizeScalar;
