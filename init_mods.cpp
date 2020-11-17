@@ -120,7 +120,7 @@ void initFileMods()
 
     if (!file)
     {
-        folder[16] = 0;
+        folder[16] = '\0';
         file = SMEFile::loadFile(SMEFile::parseExtension(folder, stage, true));
     }
 

@@ -12790,7 +12790,7 @@ public:
     float mThrowPower;               //0x0820
     u32 _23[0x9C / 4];               //0x0824
     float mMaxFallNoDamage;          //0x08C0
-    u32 _23[0xC4 / 4];               //0x08C4
+    u32 _23a[0xC4 / 4];               //0x08C4
     u16 mOBStep;                     //0x0988
     u16 _24;                         //0x098A
     u32 _25[0x10 / 4];               //0x098C
@@ -13125,7 +13125,7 @@ public:
     {
         u32 len = strlen(filepath);
 
-        for (u32 i = 0; stage[i] != NULL && stage[i] != '.'; ++i)
+        for (u32 i = 0; stage[i] != '\0' && stage[i] != '.'; ++i)
         {
             if (generalize == true && (stage[i] >= '0' && stage[i] <= '9'))
             {
@@ -13134,7 +13134,7 @@ public:
                 filepath[len + 2] = 's';
                 filepath[len + 3] = 'm';
                 filepath[len + 4] = 'e';
-                filepath[len + 5] = NULL;
+                filepath[len + 5] = '\0';
                 return filepath;
             }
             filepath[len] = stage[i];
@@ -13145,7 +13145,7 @@ public:
         filepath[len + 1] = 's';
         filepath[len + 2] = 'm';
         filepath[len + 3] = 'e';
-        filepath[len + 4] = NULL;
+        filepath[len + 4] = '\0';
         return filepath;
     }
 };
