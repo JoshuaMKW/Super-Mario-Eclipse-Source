@@ -396,26 +396,8 @@ void initMario(TMario *gpMario, bool isMario)
         params->Attributes.mSpeedMultiplier *= sizeScalar;
         params->Attributes.mThrowPowerMultiplier *= sizeScalar;
 
-        gpMario->mGravity *= params->Attributes.mGravityMulti;
-        gpMario->mCustomInfo->mTerminalVelocity = -75 * params->Attributes.mGravityMulti;
-        gpMario->mMaxFallNoDamage *= params->Attributes.mMaxFallNoDamageMulti;
-        gpMario->mCustomInfo->mMaxJumps = params->Attributes.mJumpCount;
-
-        gpMario->mSize.x *= baseParams->Attributes.mSizeMultiplier;
-        gpMario->mSize.y *= baseParams->Attributes.mSizeMultiplier;
-        gpMario->mSize.z *= baseParams->Attributes.mSizeMultiplier;
-        gpMario->mModelData->mModel->mSizeMultiplier.x *= baseParams->Attributes.mSizeMultiplier;
-        gpMario->mModelData->mModel->mSizeMultiplier.y *= baseParams->Attributes.mSizeMultiplier;
-        gpMario->mModelData->mModel->mSizeMultiplier.z *= baseParams->Attributes.mSizeMultiplier;
-        gpMario->mOceanOfs *= baseParams->Attributes.mSizeMultiplier;
-        gpMario->mWaterJumpHeightDifMax *= baseParams->Attributes.mSizeMultiplier;
-
-        gpMario->mWaterHealthDrainSpd /= params->Attributes.mWaterHealthMultiplier;
-        gpMario->mWaterHealthScubaDrainSpd /= params->Attributes.mWaterHealthMultiplier;
-        gpMario->mBaseBounceSpeed1 *= params->Attributes.mBaseBounce1Multi;
-        gpMario->mBaseBounceSpeed2 *= params->Attributes.mBaseBounce2Multi;
-        gpMario->mBaseBounceSpeed3 *= params->Attributes.mBaseBounce3Multi;
-        gpMario->mThrowPower *= params->Attributes.mThrowPowerMultiplier;
+        gpMario->setCustomAttributes();
+        
         gpMario->mHealth = params->Attributes.mHealth;
         gpMario->mMaxHealth = params->Attributes.mMaxHealth;
         gpMario->mOBStep = params->Attributes.mOBStep;

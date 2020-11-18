@@ -123,6 +123,15 @@ void rescaleHeldObj(float *holderMatrix, float *destMatrix, TMapObjBase *mHeldOb
     PSMTXScaleApply(destMatrix, mHeldObj->mHolder->mSize.x);
 }
 
+//0x80213314
+/*
+lis r3, TMario@ha
+lwz r3, TMario@l (r3)
+lfs f0, 0x24 (r3)
+fmuls f30, f30, f0
+lwz r3, -0x6220 (r13)
+*/
+
 //0x8024E02C
 void manageExtraJumps(TMario *gpMario)
 {

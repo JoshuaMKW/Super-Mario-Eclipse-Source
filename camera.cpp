@@ -9,18 +9,11 @@ void modifyRangeToSize(float *params, float *saveParams)
     //Custom code here
     if (gpMario->mCustomInfo->mParams)
     {
-        float sizeX = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.x;
-        float sizeY = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.y;
-        float sizeZ = gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier.z;
-        float maxSize;
-
-        maxSize = max(sizeX, sizeY);
-        maxSize = max(maxSize, sizeZ);
-        if (!gpMario->mYoshi || gpMario->mYoshi->mState != TYoshi::STATE::MOUNTED || maxSize > 1)
+        if (!gpMario->mYoshi || gpMario->mYoshi->mState != TYoshi::STATE::MOUNTED || gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier > 1)
         {
-            params[0x8 / 4] *= (float)((float)(maxSize * 0.5) + (float)(1 - 0.5));
-            params[0xC / 4] *= (float)((float)(maxSize * 0.5) + (float)(1 - 0.5));
-            params[0x24 / 4] *= (float)((float)(maxSize * 0.9375) + (float)(1 - 0.9375));
+            params[0x8 / 4] *= (float)((float)(gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier * 0.5) + (float)(1 - 0.5));
+            params[0xC / 4] *= (float)((float)(gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier * 0.5) + (float)(1 - 0.5));
+            params[0x24 / 4] *= (float)((float)(gpMario->mCustomInfo->mParams->Attributes.mSizeMultiplier * 0.9375) + (float)(1 - 0.9375));
         }
     }
 }
