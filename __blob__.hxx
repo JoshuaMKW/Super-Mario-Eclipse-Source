@@ -12898,23 +12898,21 @@ public:
         struct
         {
             float mGravity;
-            float mBaseBounce1Multi;
-            float mBaseBounce2Multi;
-            float mBaseBounce3Multi;
-            float mMaxFallNoDamageMulti;
-            float mBaseJumpHeightMulti;
-            float mSpeedMultiplier;
-            float mThrowPowerMultiplier;
+            float mBaseBounce1;
+            float mBaseBounce2;
+            float mBaseBounce3;
+            float mMaxFallNoDamage;
+            float mThrowPower;
 
-            float mTerminalVelocity;
             float mMaxFallNoDamage;
             float mOceanOfs;
-            float mWaterJumpHeightDifMax;
+            float mWaterJumpHeightDifMax; 
+            float _00[8];
         } DefaultAttrs; //0x0024
 
-        bool _mFirstParamsDone; //0x0054
-        u8 _00;             //0x0055
-        u16 _01;            //0x0056
+        bool _mFirstParamsDone; //0x0068
+        u8 _00;             //0x0069
+        u16 _01;            //0x006A
     };
 
     /*
@@ -13077,40 +13075,44 @@ public:
     u32 _37[0x200C / 4];             //0x2284
     float mAllSpeedMultiplier;       //0x4290
 
-    void setCustomAttributes();
-};
-
-void TMario::setCustomAttributes()
-{
-    MarioParamsFile *baseParams = this->mCustomInfo->_mBaseParams;
-    if (baseParams)
+    void setCustomAttributes()
     {
-        if (!this->mCustomInfo->mParams)
+        if (MarioParamsFile *baseParams = this->mCustomInfo->_mBaseParams; baseParams)
         {
-            this->mCustomInfo->mParams = (MarioParamsFile *)malloc(sizeof(MarioParamsFile), 32);
-        }
-        MarioParamsFile *params = this->mCustomInfo->mParams;
-
-        this->mGravity = this->mCustomInfo->DefaultAttrs.mGravity;
-        this->mCustomInfo->mTerminalVelocity = -75;
-        this->mMaxFallNoDamage = this->mCustomInfo->DefaultAttrs.mMaxFallNoDamage;
-        this->mCustomInfo->mMaxJumps = 1;
-        this->mOceanOfs = this->mCustomInfo->DefaultAttrs.mOceanOfs;
-        this->mWaterJumpHeightDifMax = this->mCustomInfo->DefaultAttrs.mWaterJumpHeightDifMax;
-    
-        this->mBaseBounceSpeed1 = params->Attributes.mBaseBounce1Multi;
-        this->mBaseBounceSpeed2 = params->Attributes.mBaseBounce2Multi;
-        this->mBaseBounceSpeed3 = params->Attributes.mBaseBounce3Multi;
-        
-        if (!this->mYoshi || this->mYoshi->mState != TYoshi::STATE::MOUNTED)
-        {
-            this->mGravity *= params->Attributes.mGravityMulti;
-            this->mCustomInfo->mTerminalVelocity = -75 * params->Attributes.mGravityMulti;
-            this->mMaxFallNoDamage *= params->Attributes.mMaxFallNoDamageMulti;
-            this->mCustomInfo->mMaxJumps = params->Attributes.mJumpCount;
-
-            if (!this->mCustomInfo->_mFirstParamsDone)
+            if (!this->mCustomInfo->mParams)
             {
+                this->mCustomInfo->mParams = (MarioParamsFile *)malloc(sizeof(MarioParamsFile), 32);
+            }
+            MarioParamsFile *params = this->mCustomInfo->mParams;
+
+            if (this->mCustomInfo->_mFirstParamsDone)
+            {
+                this->mGravity = this->mCustomInfo->DefaultAttrs.mGravity;
+                this->mCustomInfo->mTerminalVelocity = -75 * this->mGravity;
+                this->mMaxFallNoDamage = this->mCustomInfo->DefaultAttrs.mMaxFallNoDamage;
+                this->mCustomInfo->mMaxJumps = 1;
+                this->mOceanOfs = this->mCustomInfo->DefaultAttrs.mOceanOfs;
+                this->mWaterJumpHeightDifMax = this->mCustomInfo->DefaultAttrs.mWaterJumpHeightDifMax;
+                this->mThrowPower = this->mCustomInfo->DefaultAttrs.mThrowPower;
+            
+                this->mBaseBounceSpeed1 = this->mCustomInfo->DefaultAttrs.mBaseBounce1;
+                this->mBaseBounceSpeed2 = this->mCustomInfo->DefaultAttrs.mBaseBounce2;
+                this->mBaseBounceSpeed3 = this->mCustomInfo->DefaultAttrs.mBaseBounce3;
+
+                this->mCustomInfo->mParams->Attributes.mSpeedMultiplier = 1;
+                this->mCustomInfo->mParams->Attributes.mBaseJumpHeightMulti = 1;
+            }
+            else
+            {
+                this->mCustomInfo->DefaultAttrs.mBaseBounce1 = this->mBaseBounceSpeed1;
+                this->mCustomInfo->DefaultAttrs.mBaseBounce1 = this->mBaseBounceSpeed2;
+                this->mCustomInfo->DefaultAttrs.mBaseBounce1 = this->mBaseBounceSpeed3;
+                this->mCustomInfo->DefaultAttrs.mGravity = this->mGravity;
+                this->mCustomInfo->DefaultAttrs.mMaxFallNoDamage = this->mMaxFallNoDamage;
+                this->mCustomInfo->DefaultAttrs.mOceanOfs = this->mOceanOfs;
+                this->mCustomInfo->DefaultAttrs.mThrowPower = this->mThrowPower;
+                this->mCustomInfo->DefaultAttrs.mWaterJumpHeightDifMax = this->mWaterJumpHeightDifMax;
+
                 this->mSize.x *= baseParams->Attributes.mSizeMultiplier;
                 this->mSize.y *= baseParams->Attributes.mSizeMultiplier;
                 this->mSize.z *= baseParams->Attributes.mSizeMultiplier;
@@ -13120,19 +13122,27 @@ void TMario::setCustomAttributes()
             
                 this->mCustomInfo->_mFirstParamsDone = true;
             }
+            
+            if (!this->mYoshi || this->mYoshi->mState != TYoshi::STATE::MOUNTED)
+            {
+                this->mGravity *= params->Attributes.mGravityMulti;
+                this->mCustomInfo->mTerminalVelocity = -75 * params->Attributes.mGravityMulti;
+                this->mMaxFallNoDamage *= params->Attributes.mMaxFallNoDamageMulti;
+                this->mCustomInfo->mMaxJumps = params->Attributes.mJumpCount;
 
-            this->mOceanOfs *= baseParams->Attributes.mSizeMultiplier;
-            this->mWaterJumpHeightDifMax *= baseParams->Attributes.mSizeMultiplier;
+                this->mOceanOfs *= baseParams->Attributes.mSizeMultiplier;
+                this->mWaterJumpHeightDifMax *= baseParams->Attributes.mSizeMultiplier;
 
-            this->mWaterHealthDrainSpd /= params->Attributes.mWaterHealthMultiplier;
-            this->mWaterHealthScubaDrainSpd /= params->Attributes.mWaterHealthMultiplier;
-            this->mBaseBounceSpeed1 *= params->Attributes.mBaseBounce1Multi;
-            this->mBaseBounceSpeed2 *= params->Attributes.mBaseBounce2Multi;
-            this->mBaseBounceSpeed3 *= params->Attributes.mBaseBounce3Multi;
-            this->mThrowPower *= params->Attributes.mThrowPowerMultiplier;
+                this->mWaterHealthDrainSpd /= params->Attributes.mWaterHealthMultiplier;
+                this->mWaterHealthScubaDrainSpd /= params->Attributes.mWaterHealthMultiplier;
+                this->mBaseBounceSpeed1 *= params->Attributes.mBaseBounce1Multi;
+                this->mBaseBounceSpeed2 *= params->Attributes.mBaseBounce2Multi;
+                this->mBaseBounceSpeed3 *= params->Attributes.mBaseBounce3Multi;
+                this->mThrowPower *= params->Attributes.mThrowPowerMultiplier;
+            }
         }
     }
-}
+};
 
 class TShine : public TMapObjBase
 {
