@@ -1720,7 +1720,7 @@ public:
                 memcpy(this->mCustomInfo->mParams, baseParams, sizeof(MarioParamsFile));
             }
             MarioParamsFile *params = this->mCustomInfo->mParams;
-            float sizeMulti = baseParams->Attributes.mSizeMultiplier;
+            float sizeMulti = params->Attributes.mSizeMultiplier;
             float scalar = (float)(sizeMulti * 0.5) + (float)(1 - 0.5);
 
             if (this->mCustomInfo->_mFirstParamsDone)
@@ -1768,19 +1768,12 @@ public:
                 this->mCustomInfo->DefaultAttrs.mWaterHealthDrainSpd = this->mWaterHealthDrainSpd;
                 this->mCustomInfo->DefaultAttrs.mWaterHealthScubaDrainSpd = this->mWaterHealthScubaDrainSpd;
 
-                this->mSize.x *= sizeMulti;
-                this->mSize.y *= sizeMulti;
-                this->mSize.z *= sizeMulti;
-                this->mModelData->mModel->mSizeMultiplier.x *= sizeMulti;
-                this->mModelData->mModel->mSizeMultiplier.y *= sizeMulti;
-                this->mModelData->mModel->mSizeMultiplier.z *= sizeMulti;
-
                 this->mHealth = params->Attributes.mHealth;
                 this->mMaxHealth = params->Attributes.mMaxHealth;
                 this->mOBStep = params->Attributes.mOBStep;
                 this->mOBMax = params->Attributes.mOBMax;
                 this->mWallHangTimer = params->Attributes.mWallHangMax;
-                this->mWallAnimTimer = max(0, params->Attributes.mWallHangMax);
+                this->mWallAnimTimer = max(0, params->Attributes.mWallHangMax - 400);
 
                 this->mAttributes.mGainHelmet = params->Attributes.mMarioHasHelmet;
                 this->mAttributes.mHasFludd = params->Attributes.mCanUseFludd;
@@ -1791,24 +1784,40 @@ public:
             
             if (!this->mYoshi || this->mYoshi->mState != TYoshi::STATE::MOUNTED)
             {
+                this->mSize.x *= sizeMulti;
+                this->mSize.y *= sizeMulti;
+                this->mSize.z *= sizeMulti;
+                this->mModelData->mModel->mSizeMultiplier.x *= sizeMulti;
+                this->mModelData->mModel->mSizeMultiplier.y *= sizeMulti;
+                this->mModelData->mModel->mSizeMultiplier.z *= sizeMulti;
+
+                this->mMaxHealth = params->Attributes.mHealth;
+                if (this->mHealth > this->mMaxHealth)
+                {
+                    this->mHealth = this->mMaxHealth;
+                }
+                this->mOBStep = params->Attributes.mOBStep;
+                this->mOBMax = params->Attributes.mOBMax;
+                this->mWallHangTimer = params->Attributes.mWallHangMax;
+                this->mWallAnimTimer = max(0, params->Attributes.mWallHangMax - 400);
+
                 this->mGravity *= params->Attributes.mGravityMulti;
                 this->mCustomInfo->mTerminalVelocity *= params->Attributes.mGravityMulti;
-                this->mMaxFallNoDamage *= params->Attributes.mMaxFallNoDamageMulti;
+                this->mMaxFallNoDamage *= params->Attributes.mMaxFallNoDamageMulti * scalar;
                 this->mCustomInfo->mMaxJumps = params->Attributes.mJumpCount;
 
                 this->mWaterHealthDrainSpd /= params->Attributes.mWaterHealthMultiplier;
                 this->mWaterHealthScubaDrainSpd /= params->Attributes.mWaterHealthMultiplier;
-                this->mBaseBounceSpeed1 *= params->Attributes.mBaseBounce1Multi;
-                this->mBaseBounceSpeed2 *= params->Attributes.mBaseBounce2Multi;
-                this->mBaseBounceSpeed3 *= params->Attributes.mBaseBounce3Multi;
-                this->mOceanOfs *= scalar;
-                this->mWaterJumpHeightDifMax *= scalar;
-                this->mThrowPower *= params->Attributes.mThrowPowerMultiplier;
+                this->mBaseBounceSpeed1 *= params->Attributes.mBaseBounce1Multi * scalar;
+                this->mBaseBounceSpeed2 *= params->Attributes.mBaseBounce2Multi * scalar;
+                this->mBaseBounceSpeed3 *= params->Attributes.mBaseBounce3Multi * scalar;
+                this->mOceanOfs *= this->mSize.y;
+                this->mWaterJumpHeightDifMax *= this->mSize.y;
+                this->mThrowPower *= params->Attributes.mThrowPowerMultiplier * scalar;
 
                 params->Attributes.mBaseJumpHeightMulti = baseParams->Attributes.mBaseJumpHeightMulti * scalar;
                 params->Attributes.mSpeedMultiplier = baseParams->Attributes.mSpeedMultiplier * scalar;
             }
-            //TODO: SET THE HALFWORD ATTRS AT RUNTIME, SUCH AS HEALTH, AND TIMERS
         }
     }
 };
