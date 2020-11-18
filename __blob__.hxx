@@ -12842,7 +12842,8 @@ public:
 
 void TMario::setCustomAttributes()
 {
-    if (MarioParamsFile *baseParams = this->mCustomInfo->_mBaseParams; baseParams)
+    MarioParamsFile *baseParams = this->mCustomInfo->_mBaseParams;
+    if (baseParams)
     {
         if (!this->mCustomInfo->mParams)
         {
