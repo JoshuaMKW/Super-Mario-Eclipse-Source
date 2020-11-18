@@ -12839,13 +12839,13 @@ public:
 
     void setCustomAttributes()
     {
-        if (MarioParamsFile *baseParams = this->mCustomInfo->_mBaseParams; baseParams)
+        if (class MarioParamsFile *baseParams = this->mCustomInfo->_mBaseParams; baseParams)
         {
             if (!this->mCustomInfo->mParams)
             {
                 this->mCustomInfo->mParams = (MarioParamsFile *)malloc(sizeof(MarioParamsFile), 32);
             }
-            MarioParamsFile *params = this->mCustomInfo->mParams;
+            class MarioParamsFile *params = this->mCustomInfo->mParams;
 
             this->mGravity = this->mCustomInfo->DefaultAttrs.mGravity;
             this->mCustomInfo->mTerminalVelocity = -75;
