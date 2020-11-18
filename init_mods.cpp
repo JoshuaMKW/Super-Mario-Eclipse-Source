@@ -385,10 +385,8 @@ void initMario(TMario *gpMario, bool isMario)
 
         memcpy(params, baseParams, sizeof(MarioParamsFile));
 
-        float sizeX = baseParams->Attributes.mSizeMultiplier.x;
-        float sizeY = baseParams->Attributes.mSizeMultiplier.y;
-        float sizeZ = baseParams->Attributes.mSizeMultiplier.z;
-        float sizeScalar = (float)(((sizeX + sizeY + sizeZ) / 3) * 0.5) + (float)(1 - 0.5);
+        float sizeX = baseParams->Attributes.mSizeMultiplier;
+        float sizeScalar = (float)(baseParams->Attributes.mSizeMultiplier * 0.5) + (float)(1 - 0.5);
 
         params->Attributes.mBaseBounce1Multi *= sizeScalar;
         params->Attributes.mBaseBounce2Multi *= sizeScalar;
@@ -403,11 +401,14 @@ void initMario(TMario *gpMario, bool isMario)
         gpMario->mMaxFallNoDamage *= params->Attributes.mMaxFallNoDamageMulti;
         gpMario->mCustomInfo->mMaxJumps = params->Attributes.mJumpCount;
 
-        gpMario->mModelData->mModel->mSizeMultiplier.x *= sizeX;
-        gpMario->mModelData->mModel->mSizeMultiplier.y *= sizeY;
-        gpMario->mModelData->mModel->mSizeMultiplier.z *= sizeZ;
-        gpMario->mOceanOfs *= sizeY;
-        gpMario->mWaterJumpHeightDifMax *= sizeY;
+        gpMario->mSize.x *= baseParams->Attributes.mSizeMultiplier;
+        gpMario->mSize.y *= baseParams->Attributes.mSizeMultiplier;
+        gpMario->mSize.z *= baseParams->Attributes.mSizeMultiplier;
+        gpMario->mModelData->mModel->mSizeMultiplier.x *= baseParams->Attributes.mSizeMultiplier;
+        gpMario->mModelData->mModel->mSizeMultiplier.y *= baseParams->Attributes.mSizeMultiplier;
+        gpMario->mModelData->mModel->mSizeMultiplier.z *= baseParams->Attributes.mSizeMultiplier;
+        gpMario->mOceanOfs *= baseParams->Attributes.mSizeMultiplier;
+        gpMario->mWaterJumpHeightDifMax *= baseParams->Attributes.mSizeMultiplier;
 
         gpMario->mWaterHealthDrainSpd /= params->Attributes.mWaterHealthMultiplier;
         gpMario->mWaterHealthScubaDrainSpd /= params->Attributes.mWaterHealthMultiplier;

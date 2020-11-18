@@ -11381,6 +11381,8 @@ using f64 = double;
 #define StreamPitch 0x80417248
 #define StreamSpeed 0x8041731C
 
+#include <stdlib.h>
+
 static inline void flushAddr(void *addr)
 {
     dcbf(addr);
@@ -12667,7 +12669,6 @@ public:
             float mTerminalVelocity;
             float mMaxFallNoDamage;
         } DefaultAttrs;
-        
     };
 
     /*
@@ -13174,7 +13175,8 @@ public:
         u16 mMaxHealth;                          //0x000A
         u16 mOBStep;                             //0x000C
         u16 mOBMax;                              //0x000E
-        JGeometry::TVec3<float> mSizeMultiplier; //0x0010
+        float mSizeMultiplier;                   //0x0010
+        float _02[0x8 / 4];                      //0x0014
         float mGravityMulti;                     //0x001C
         float mBaseBounce1Multi;                 //0x0020
         float mBaseBounce2Multi;                 //0x0024

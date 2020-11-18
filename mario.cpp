@@ -114,6 +114,15 @@ TMario* updateMario(TMario* gpMario) {
 }
 */
 
+//0x801E4118
+void rescaleHeldObj(float *holderMatrix, float *destMatrix, TMapObjBase *mHeldObj)
+{
+    asm ("mr 5, 31");
+    PSMTXCopy(holderMatrix, destMatrix);
+
+    PSMTXScaleApply(destMatrix, mHeldObj->mHolder->mSize.x);
+}
+
 //0x8024E02C
 void manageExtraJumps(TMario *gpMario)
 {
