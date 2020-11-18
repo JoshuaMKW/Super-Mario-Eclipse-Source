@@ -67,246 +67,6 @@ class TYoshi;
 class TWaterGun;
 class Vector3D;
 
-class SMEFile
-{
-
-public:
-    struct
-    {
-        char mMAGIC[4];         //0x0000 ("CODE")
-        u32 *mLoadAddress;      //0x0004
-        u32 mFileSize;          //0x0008
-        u8 mTotalSections;      //0x000C
-        bool mIsExecutable;     //0x000D
-        u16 mNextSectionOffset; //0x000E
-        bool mIsShineShadow;    //0x0010
-        bool mIsMario;          //0x0011
-        bool mIsYoshi;          //0x0012
-        bool mIsMusic;          //0x0013
-        bool mIsFludd;          //0x0014
-        u8 mShineShadowFlag;    //0x0015
-
-        struct
-        {
-            bool mWalking : 1; //0x0016
-            bool mJumping : 1;
-            bool mHovering : 1;
-            bool mSliding : 1;
-            bool mSwimming : 1;
-            bool mMarioOilRunning : 1;
-            bool mMarioOilSlip : 1;
-            bool mMarioHasFludd : 1;
-            bool mMarioHasHelmet : 1;
-            bool mMarioHasGlasses : 1;
-            bool mMarioHasShirt : 1;
-            u8 _00 : 4;
-        } MarioStates;
-
-        struct
-        {
-            u8 _00 : 4;
-            bool mIsExMap : 1;
-            bool mIsDivingMap : 1;
-            bool mIsOptionMap : 1;
-            bool mIsMultiPlayerMap : 1;
-        } StageType; //0x0018
-
-        u8 mPlayerID; //0x0019
-        u16 _01;      //0x001A
-        u32 _02;      //0x001C
-    } FileHeader;
-
-    struct
-    {
-        JGeometry::TVec3<float> mCoordinates; //0x0020
-        float mSize;                          //0x002C
-        float mStep;                          //0x0030
-        RGBA<u8> mColor;                      //0x0034
-        u8 mLayerCount;                       //0x0038
-        u8 mDarkLevel;                        //0x0039
-        u16 _00;                              //0x003A
-    } Light;
-
-    struct
-    {
-        float mSpeedMulti;      //0x003C
-        float mGravity;         //0x0040
-        float mBaseBounce1;     //0x0044
-        float mBaseBounce2;     //0x0048
-        float mBaseBounce3;     //0x004C
-        float mMaxFallNoDamage; //0x0050
-        u16 mHealth;            //0x0054
-        u16 mMaxHealth;         //0x0056
-        u16 mOBStep;            //0x0058
-        u16 mOBMax;             //0x005A
-        u32 _00;                //0x005C
-    } Mario;
-
-    struct
-    {
-        s32 mMaxJuice;              //0x0060
-        RGBA<u8> mGreenYoshi;       //0x0064
-        RGBA<u8> mOrangeYoshi;      //0x0068
-        RGBA<u8> mPurpleYoshi;      //0x006C
-        RGBA<u8> mPinkYoshi;        //0x0070
-        float mMaxVSpdStartFlutter; //0x0074
-        float mFlutterAcceleration; //0x0078
-        u16 mMaxFlutterTimer;       //0x007C
-        bool mYoshiHungry;          //0x007E
-        bool mIsEggFree;            //0x007F
-    } Yoshi;
-
-    struct
-    {
-        float mVolume;   //0x0080
-        float mSpeed;    //0x0084
-        float mPitch;    //0x0088
-        bool mPlayMusic; //0x008C
-        u16 mMusicID;    //0x008D
-        u8 mAreaID;      //0x008F
-        u8 mEpisodeID;   //0x0090
-    } Music;
-
-    struct
-    {
-        TWaterGun::NOZZLETYPE mPrimaryNozzle;   //0x0091
-        TWaterGun::NOZZLETYPE mSecondaryNozzle; //0x0092
-        RGBA<u8> mWaterColor;                   //0x0093
-        bool mIsColorWater;                     //0x0097
-    } Fludd;
-
-    static SMEFile *loadFile(const char *stringPath)
-    {
-        u32 handle[0x3C / 4];
-        char buffer[(sizeof(SMEFile) + 63) & -32];
-        SMEFile *tmp = (SMEFile *)(((u32)buffer + 31) & -32);
-
-        for (u32 i = 0; DVDGetDriveStatus() != DVD_STATE_END; ++i)
-        {
-            if (i > 100000)
-            {
-                return nullptr;
-            }
-        }
-
-        if (!DVDOpen(stringPath, handle))
-            return nullptr;
-
-        if (DVDReadPrio(handle, tmp, 32, 0, 2) < DVD_ERROR_OK)
-        {
-            DVDClose(handle);
-            return nullptr;
-        }
-
-        u32 *loadAddress;
-        if (tmp->FileHeader.mLoadAddress == nullptr)
-        {
-            loadAddress = (u32 *)malloc(sizeof(SMEFile) + 31, 32); //Create an allocation
-        }
-        else
-        {
-            loadAddress = tmp->FileHeader.mLoadAddress;
-        }
-
-        if (DVDReadPrio(handle, loadAddress, tmp->FileHeader.mFileSize, 0, 2) < DVD_ERROR_OK)
-        {
-            DVDClose(handle);
-            return nullptr;
-        }
-        DVDClose(handle);
-        return (SMEFile *)loadAddress;
-    }
-
-    static char *parseExtension(char *filepath, const char *stage, bool generalize = false)
-    {
-        u32 len = strlen(filepath);
-
-        for (u32 i = 0; stage[i] != '\0' && stage[i] != '.'; ++i)
-        {
-            if (generalize == true && (stage[i] >= '0' && stage[i] <= '9'))
-            {
-                filepath[len] = '+';
-                filepath[len + 1] = '.';
-                filepath[len + 2] = 's';
-                filepath[len + 3] = 'm';
-                filepath[len + 4] = 'e';
-                filepath[len + 5] = '\0';
-                return filepath;
-            }
-            filepath[len] = stage[i];
-            ++len;
-        }
-
-        filepath[len] = '.';
-        filepath[len + 1] = 's';
-        filepath[len + 2] = 'm';
-        filepath[len + 3] = 'e';
-        filepath[len + 4] = '\0';
-        return filepath;
-    }
-};
-
-class MarioParamsFile
-{
-
-public:
-    enum FluddCleanType : u8
-    {
-        NONE,
-        CLEAN,
-        GOOP
-    };
-
-    struct
-    {
-        u8 mJumpCount;                           //0x0000
-        bool mCanRideYoshi;                      //0x0001
-        bool mCanUseFludd;                       //0x0002
-        bool mMarioHasHelmet;                    //0x0003
-        bool mMarioHasGlasses;                   //0x0004
-        bool mMarioHasShirt;                     //0x0005
-        u16 _01;                                 //0x0006
-        u16 mHealth;                             //0x0008
-        u16 mMaxHealth;                          //0x000A
-        u16 mOBStep;                             //0x000C
-        u16 mOBMax;                              //0x000E
-        float mSizeMultiplier;                   //0x0010
-        float _02[0x8 / 4];                      //0x0014
-        float mGravityMulti;                     //0x001C
-        float mBaseBounce1Multi;                 //0x0020
-        float mBaseBounce2Multi;                 //0x0024
-        float mBaseBounce3Multi;                 //0x0028
-        float mMaxFallNoDamageMulti;             //0x002C
-        float mBaseJumpHeightMulti;              //0x0030
-        float mMultiJumpMultiplier;              //0x0034
-        float mMultiJumpFSpeedMulti;             //0x0038
-        float mSpeedMultiplier;                  //0x003C
-
-        struct
-        {
-            bool mCanUseNozzle[8];        //0x0040
-            RGBA<u8> mWaterColor;         //0x0048
-            FluddCleanType mCleaningType; //0x004C
-            u8 _00;                       //0x004D
-            u16 _01;                      //0x004E
-            bool mBindToJointID[8];       //0x0050
-            bool mCanCleanSeals;          //0x0058
-            u8 _02;                       //0x0059
-            u16 _03;                      //0x005A
-        } FluddAttrs;
-
-        float mWaterHealthMultiplier;   //0x005C
-        char *mNameOffset;              //0x0060
-        float mThrowPowerMultiplier;    //0x0064
-        float mSlideStrengthMultiplier; //0x0068
-        s16 mWallHangMax;               //0x006C
-        bool mGoopAffected;             //0x006E
-        bool mCanHoldNPCs;              //0x006F
-        bool mCanClimbWalls;            //0x0070
-
-    } Attributes;
-};
-
 struct AreaEpisodeArray
 {
     u32 _00[0x10 / 4]; //0x0000
@@ -1710,116 +1470,7 @@ public:
     u32 _37[0x200C / 4];             //0x2284
     float mAllSpeedMultiplier;       //0x4290
 
-    void setCustomAttributes()
-    {
-        if (MarioParamsFile *baseParams = this->mCustomInfo->_mBaseParams; baseParams)
-        {
-            if (!this->mCustomInfo->mParams)
-            {
-                this->mCustomInfo->mParams = (MarioParamsFile *)malloc(sizeof(MarioParamsFile), 32);
-                memcpy(this->mCustomInfo->mParams, baseParams, sizeof(MarioParamsFile));
-            }
-            MarioParamsFile *params = this->mCustomInfo->mParams;
-            float sizeMulti = params->Attributes.mSizeMultiplier;
-            float scalar = (float)(sizeMulti * 0.5) + (float)(1 - 0.5);
-
-            if (this->mCustomInfo->_mFirstParamsDone)
-            {
-                this->mGravity = this->mCustomInfo->DefaultAttrs.mGravity;
-                this->mCustomInfo->mTerminalVelocity = -75 * this->mGravity;
-                this->mMaxFallNoDamage = this->mCustomInfo->DefaultAttrs.mMaxFallNoDamage;
-                this->mCustomInfo->mMaxJumps = 1;
-
-                this->mWaterHealthDrainSpd = this->mCustomInfo->DefaultAttrs.mWaterHealthDrainSpd;
-                this->mWaterHealthScubaDrainSpd = this->mCustomInfo->DefaultAttrs.mWaterHealthScubaDrainSpd;
-                this->mBaseBounceSpeed1 = this->mCustomInfo->DefaultAttrs.mBaseBounce1;
-                this->mBaseBounceSpeed2 = this->mCustomInfo->DefaultAttrs.mBaseBounce2;
-                this->mBaseBounceSpeed3 = this->mCustomInfo->DefaultAttrs.mBaseBounce3;
-                this->mOceanOfs = this->mCustomInfo->DefaultAttrs.mOceanOfs;
-                this->mWaterJumpHeightDifMax = this->mCustomInfo->DefaultAttrs.mWaterJumpHeightDifMax;
-                this->mThrowPower = this->mCustomInfo->DefaultAttrs.mThrowPower;
-
-                this->mCustomInfo->mParams->Attributes.mSpeedMultiplier = 1;
-                this->mCustomInfo->mParams->Attributes.mBaseJumpHeightMulti = 1;
-            }
-            else
-            {
-                params->Attributes.mBaseBounce1Multi *= scalar;
-                params->Attributes.mBaseBounce2Multi *= scalar;
-                params->Attributes.mBaseBounce3Multi *= scalar;
-                params->Attributes.mMaxFallNoDamageMulti *= scalar;
-                params->Attributes.mBaseJumpHeightMulti *= scalar;
-                params->Attributes.mSpeedMultiplier *= scalar;
-                params->Attributes.mThrowPowerMultiplier *= scalar;
-
-                if (params->Attributes.mMarioHasGlasses)
-                {
-                    wearGlass__6TMarioFv(this);
-                }
-
-                this->mCustomInfo->DefaultAttrs.mBaseBounce1 = this->mBaseBounceSpeed1;
-                this->mCustomInfo->DefaultAttrs.mBaseBounce2 = this->mBaseBounceSpeed2;
-                this->mCustomInfo->DefaultAttrs.mBaseBounce3 = this->mBaseBounceSpeed3;
-                this->mCustomInfo->DefaultAttrs.mGravity = this->mGravity;
-                this->mCustomInfo->DefaultAttrs.mMaxFallNoDamage = this->mMaxFallNoDamage;
-                this->mCustomInfo->DefaultAttrs.mOceanOfs = this->mOceanOfs;
-                this->mCustomInfo->DefaultAttrs.mThrowPower = this->mThrowPower;
-                this->mCustomInfo->DefaultAttrs.mWaterJumpHeightDifMax = this->mWaterJumpHeightDifMax;
-                this->mCustomInfo->DefaultAttrs.mWaterHealthDrainSpd = this->mWaterHealthDrainSpd;
-                this->mCustomInfo->DefaultAttrs.mWaterHealthScubaDrainSpd = this->mWaterHealthScubaDrainSpd;
-
-                this->mHealth = params->Attributes.mHealth;
-                this->mMaxHealth = params->Attributes.mMaxHealth;
-                this->mOBStep = params->Attributes.mOBStep;
-                this->mOBMax = params->Attributes.mOBMax;
-                this->mWallHangTimer = params->Attributes.mWallHangMax;
-                this->mWallAnimTimer = max(0, params->Attributes.mWallHangMax - 400);
-
-                this->mAttributes.mGainHelmet = params->Attributes.mMarioHasHelmet;
-                this->mAttributes.mHasFludd = params->Attributes.mCanUseFludd;
-                this->mAttributes.mIsShineShirt = params->Attributes.mMarioHasShirt;
-            
-                this->mCustomInfo->_mFirstParamsDone = true;
-            }
-            
-            if (!this->mYoshi || this->mYoshi->mState != TYoshi::STATE::MOUNTED)
-            {
-                this->mSize.x *= sizeMulti;
-                this->mSize.y *= sizeMulti;
-                this->mSize.z *= sizeMulti;
-                this->mModelData->mModel->mSizeMultiplier.x *= sizeMulti;
-                this->mModelData->mModel->mSizeMultiplier.y *= sizeMulti;
-                this->mModelData->mModel->mSizeMultiplier.z *= sizeMulti;
-
-                this->mMaxHealth = params->Attributes.mHealth;
-                if (this->mHealth > this->mMaxHealth)
-                {
-                    this->mHealth = this->mMaxHealth;
-                }
-                this->mOBStep = params->Attributes.mOBStep;
-                this->mOBMax = params->Attributes.mOBMax;
-                this->mWallHangTimer = params->Attributes.mWallHangMax;
-                this->mWallAnimTimer = max(0, params->Attributes.mWallHangMax - 400);
-
-                this->mGravity *= params->Attributes.mGravityMulti;
-                this->mCustomInfo->mTerminalVelocity *= params->Attributes.mGravityMulti;
-                this->mMaxFallNoDamage *= params->Attributes.mMaxFallNoDamageMulti * scalar;
-                this->mCustomInfo->mMaxJumps = params->Attributes.mJumpCount;
-
-                this->mWaterHealthDrainSpd /= params->Attributes.mWaterHealthMultiplier;
-                this->mWaterHealthScubaDrainSpd /= params->Attributes.mWaterHealthMultiplier;
-                this->mBaseBounceSpeed1 *= params->Attributes.mBaseBounce1Multi * scalar;
-                this->mBaseBounceSpeed2 *= params->Attributes.mBaseBounce2Multi * scalar;
-                this->mBaseBounceSpeed3 *= params->Attributes.mBaseBounce3Multi * scalar;
-                this->mOceanOfs *= this->mSize.y;
-                this->mWaterJumpHeightDifMax *= this->mSize.y;
-                this->mThrowPower *= params->Attributes.mThrowPowerMultiplier * scalar;
-
-                params->Attributes.mBaseJumpHeightMulti = baseParams->Attributes.mBaseJumpHeightMulti * scalar;
-                params->Attributes.mSpeedMultiplier = baseParams->Attributes.mSpeedMultiplier * scalar;
-            }
-        }
-    }
+    void setCustomAttributes();
 };
 
 class TShine : public TMapObjBase
@@ -1960,6 +1611,246 @@ public:
     TSMSFader *mFader;              //0x0034
     u32 _04[0x8 / 4];               //0x0038
     u32 *mJKRExpHeapHi;             //0x0040
+};
+
+class SMEFile
+{
+
+public:
+    struct
+    {
+        char mMAGIC[4];         //0x0000 ("CODE")
+        u32 *mLoadAddress;      //0x0004
+        u32 mFileSize;          //0x0008
+        u8 mTotalSections;      //0x000C
+        bool mIsExecutable;     //0x000D
+        u16 mNextSectionOffset; //0x000E
+        bool mIsShineShadow;    //0x0010
+        bool mIsMario;          //0x0011
+        bool mIsYoshi;          //0x0012
+        bool mIsMusic;          //0x0013
+        bool mIsFludd;          //0x0014
+        u8 mShineShadowFlag;    //0x0015
+
+        struct
+        {
+            bool mWalking : 1; //0x0016
+            bool mJumping : 1;
+            bool mHovering : 1;
+            bool mSliding : 1;
+            bool mSwimming : 1;
+            bool mMarioOilRunning : 1;
+            bool mMarioOilSlip : 1;
+            bool mMarioHasFludd : 1;
+            bool mMarioHasHelmet : 1;
+            bool mMarioHasGlasses : 1;
+            bool mMarioHasShirt : 1;
+            u8 _00 : 4;
+        } MarioStates;
+
+        struct
+        {
+            u8 _00 : 4;
+            bool mIsExMap : 1;
+            bool mIsDivingMap : 1;
+            bool mIsOptionMap : 1;
+            bool mIsMultiPlayerMap : 1;
+        } StageType; //0x0018
+
+        u8 mPlayerID; //0x0019
+        u16 _01;      //0x001A
+        u32 _02;      //0x001C
+    } FileHeader;
+
+    struct
+    {
+        JGeometry::TVec3<float> mCoordinates; //0x0020
+        float mSize;                          //0x002C
+        float mStep;                          //0x0030
+        RGBA<u8> mColor;                      //0x0034
+        u8 mLayerCount;                       //0x0038
+        u8 mDarkLevel;                        //0x0039
+        u16 _00;                              //0x003A
+    } Light;
+
+    struct
+    {
+        float mSpeedMulti;      //0x003C
+        float mGravity;         //0x0040
+        float mBaseBounce1;     //0x0044
+        float mBaseBounce2;     //0x0048
+        float mBaseBounce3;     //0x004C
+        float mMaxFallNoDamage; //0x0050
+        u16 mHealth;            //0x0054
+        u16 mMaxHealth;         //0x0056
+        u16 mOBStep;            //0x0058
+        u16 mOBMax;             //0x005A
+        u32 _00;                //0x005C
+    } Mario;
+
+    struct
+    {
+        s32 mMaxJuice;              //0x0060
+        RGBA<u8> mGreenYoshi;       //0x0064
+        RGBA<u8> mOrangeYoshi;      //0x0068
+        RGBA<u8> mPurpleYoshi;      //0x006C
+        RGBA<u8> mPinkYoshi;        //0x0070
+        float mMaxVSpdStartFlutter; //0x0074
+        float mFlutterAcceleration; //0x0078
+        u16 mMaxFlutterTimer;       //0x007C
+        bool mYoshiHungry;          //0x007E
+        bool mIsEggFree;            //0x007F
+    } Yoshi;
+
+    struct
+    {
+        float mVolume;   //0x0080
+        float mSpeed;    //0x0084
+        float mPitch;    //0x0088
+        bool mPlayMusic; //0x008C
+        u16 mMusicID;    //0x008D
+        u8 mAreaID;      //0x008F
+        u8 mEpisodeID;   //0x0090
+    } Music;
+
+    struct
+    {
+        TWaterGun::NOZZLETYPE mPrimaryNozzle;   //0x0091
+        TWaterGun::NOZZLETYPE mSecondaryNozzle; //0x0092
+        RGBA<u8> mWaterColor;                   //0x0093
+        bool mIsColorWater;                     //0x0097
+    } Fludd;
+
+    static SMEFile *loadFile(const char *stringPath)
+    {
+        u32 handle[0x3C / 4];
+        char buffer[(sizeof(SMEFile) + 63) & -32];
+        SMEFile *tmp = (SMEFile *)(((u32)buffer + 31) & -32);
+
+        for (u32 i = 0; DVDGetDriveStatus() != DVD_STATE_END; ++i)
+        {
+            if (i > 100000)
+            {
+                return nullptr;
+            }
+        }
+
+        if (!DVDOpen(stringPath, handle))
+            return nullptr;
+
+        if (DVDReadPrio(handle, tmp, 32, 0, 2) < DVD_ERROR_OK)
+        {
+            DVDClose(handle);
+            return nullptr;
+        }
+
+        u32 *loadAddress;
+        if (tmp->FileHeader.mLoadAddress == nullptr)
+        {
+            loadAddress = (u32 *)malloc(sizeof(SMEFile) + 31, 32); //Create an allocation
+        }
+        else
+        {
+            loadAddress = tmp->FileHeader.mLoadAddress;
+        }
+
+        if (DVDReadPrio(handle, loadAddress, tmp->FileHeader.mFileSize, 0, 2) < DVD_ERROR_OK)
+        {
+            DVDClose(handle);
+            return nullptr;
+        }
+        DVDClose(handle);
+        return (SMEFile *)loadAddress;
+    }
+
+    static char *parseExtension(char *filepath, const char *stage, bool generalize = false)
+    {
+        u32 len = strlen(filepath);
+
+        for (u32 i = 0; stage[i] != '\0' && stage[i] != '.'; ++i)
+        {
+            if (generalize == true && (stage[i] >= '0' && stage[i] <= '9'))
+            {
+                filepath[len] = '+';
+                filepath[len + 1] = '.';
+                filepath[len + 2] = 's';
+                filepath[len + 3] = 'm';
+                filepath[len + 4] = 'e';
+                filepath[len + 5] = '\0';
+                return filepath;
+            }
+            filepath[len] = stage[i];
+            ++len;
+        }
+
+        filepath[len] = '.';
+        filepath[len + 1] = 's';
+        filepath[len + 2] = 'm';
+        filepath[len + 3] = 'e';
+        filepath[len + 4] = '\0';
+        return filepath;
+    }
+};
+
+class MarioParamsFile
+{
+
+public:
+    enum FluddCleanType : u8
+    {
+        NONE,
+        CLEAN,
+        GOOP
+    };
+
+    struct
+    {
+        u8 mJumpCount;                           //0x0000
+        bool mCanRideYoshi;                      //0x0001
+        bool mCanUseFludd;                       //0x0002
+        bool mMarioHasHelmet;                    //0x0003
+        bool mMarioHasGlasses;                   //0x0004
+        bool mMarioHasShirt;                     //0x0005
+        u16 _01;                                 //0x0006
+        u16 mHealth;                             //0x0008
+        u16 mMaxHealth;                          //0x000A
+        u16 mOBStep;                             //0x000C
+        u16 mOBMax;                              //0x000E
+        float mSizeMultiplier;                   //0x0010
+        float _02[0x8 / 4];                      //0x0014
+        float mGravityMulti;                     //0x001C
+        float mBaseBounce1Multi;                 //0x0020
+        float mBaseBounce2Multi;                 //0x0024
+        float mBaseBounce3Multi;                 //0x0028
+        float mMaxFallNoDamageMulti;             //0x002C
+        float mBaseJumpHeightMulti;              //0x0030
+        float mMultiJumpMultiplier;              //0x0034
+        float mMultiJumpFSpeedMulti;             //0x0038
+        float mSpeedMultiplier;                  //0x003C
+
+        struct
+        {
+            bool mCanUseNozzle[8];        //0x0040
+            RGBA<u8> mWaterColor;         //0x0048
+            FluddCleanType mCleaningType; //0x004C
+            u8 _00;                       //0x004D
+            u16 _01;                      //0x004E
+            bool mBindToJointID[8];       //0x0050
+            bool mCanCleanSeals;          //0x0058
+            u8 _02;                       //0x0059
+            u16 _03;                      //0x005A
+        } FluddAttrs;
+
+        float mWaterHealthMultiplier;   //0x005C
+        char *mNameOffset;              //0x0060
+        float mThrowPowerMultiplier;    //0x0064
+        float mSlideStrengthMultiplier; //0x0068
+        s16 mWallHangMax;               //0x006C
+        bool mGoopAffected;             //0x006E
+        bool mCanHoldNPCs;              //0x006F
+        bool mCanClimbWalls;            //0x0070
+
+    } Attributes;
 };
 
 class Vector3D
@@ -2208,3 +2099,114 @@ CustomInfo gInfo;
 RGBA<u8> waterColor;
 RGBA<u8> juiceColor;
 RGBA<u8> yoshiColor;
+
+void TMario::setCustomAttributes()
+{
+    if (MarioParamsFile *baseParams = this->mCustomInfo->_mBaseParams; baseParams)
+    {
+        if (!this->mCustomInfo->mParams)
+        {
+            this->mCustomInfo->mParams = (MarioParamsFile *)malloc(sizeof(MarioParamsFile), 32);
+            memcpy(this->mCustomInfo->mParams, baseParams, sizeof(MarioParamsFile));
+        }
+        MarioParamsFile *params = this->mCustomInfo->mParams;
+        float sizeMulti = params->Attributes.mSizeMultiplier;
+        float scalar = (float)(sizeMulti * 0.5) + (float)(1 - 0.5);
+
+        if (this->mCustomInfo->_mFirstParamsDone)
+        {
+            this->mGravity = this->mCustomInfo->DefaultAttrs.mGravity;
+            this->mCustomInfo->mTerminalVelocity = -75 * this->mGravity;
+            this->mMaxFallNoDamage = this->mCustomInfo->DefaultAttrs.mMaxFallNoDamage;
+            this->mCustomInfo->mMaxJumps = 1;
+
+            this->mWaterHealthDrainSpd = this->mCustomInfo->DefaultAttrs.mWaterHealthDrainSpd;
+            this->mWaterHealthScubaDrainSpd = this->mCustomInfo->DefaultAttrs.mWaterHealthScubaDrainSpd;
+            this->mBaseBounceSpeed1 = this->mCustomInfo->DefaultAttrs.mBaseBounce1;
+            this->mBaseBounceSpeed2 = this->mCustomInfo->DefaultAttrs.mBaseBounce2;
+            this->mBaseBounceSpeed3 = this->mCustomInfo->DefaultAttrs.mBaseBounce3;
+            this->mOceanOfs = this->mCustomInfo->DefaultAttrs.mOceanOfs;
+            this->mWaterJumpHeightDifMax = this->mCustomInfo->DefaultAttrs.mWaterJumpHeightDifMax;
+            this->mThrowPower = this->mCustomInfo->DefaultAttrs.mThrowPower;
+
+            this->mCustomInfo->mParams->Attributes.mSpeedMultiplier = 1;
+            this->mCustomInfo->mParams->Attributes.mBaseJumpHeightMulti = 1;
+        }
+        else
+        {
+            params->Attributes.mBaseBounce1Multi *= scalar;
+            params->Attributes.mBaseBounce2Multi *= scalar;
+            params->Attributes.mBaseBounce3Multi *= scalar;
+            params->Attributes.mMaxFallNoDamageMulti *= scalar;
+            params->Attributes.mBaseJumpHeightMulti *= scalar;
+            params->Attributes.mSpeedMultiplier *= scalar;
+            params->Attributes.mThrowPowerMultiplier *= scalar;
+
+            if (params->Attributes.mMarioHasGlasses)
+            {
+                wearGlass__6TMarioFv(this);
+            }
+
+            this->mCustomInfo->DefaultAttrs.mBaseBounce1 = this->mBaseBounceSpeed1;
+            this->mCustomInfo->DefaultAttrs.mBaseBounce2 = this->mBaseBounceSpeed2;
+            this->mCustomInfo->DefaultAttrs.mBaseBounce3 = this->mBaseBounceSpeed3;
+            this->mCustomInfo->DefaultAttrs.mGravity = this->mGravity;
+            this->mCustomInfo->DefaultAttrs.mMaxFallNoDamage = this->mMaxFallNoDamage;
+            this->mCustomInfo->DefaultAttrs.mOceanOfs = this->mOceanOfs;
+            this->mCustomInfo->DefaultAttrs.mThrowPower = this->mThrowPower;
+            this->mCustomInfo->DefaultAttrs.mWaterJumpHeightDifMax = this->mWaterJumpHeightDifMax;
+            this->mCustomInfo->DefaultAttrs.mWaterHealthDrainSpd = this->mWaterHealthDrainSpd;
+            this->mCustomInfo->DefaultAttrs.mWaterHealthScubaDrainSpd = this->mWaterHealthScubaDrainSpd;
+
+            this->mHealth = params->Attributes.mHealth;
+            this->mMaxHealth = params->Attributes.mMaxHealth;
+            this->mOBStep = params->Attributes.mOBStep;
+            this->mOBMax = params->Attributes.mOBMax;
+            this->mWallHangTimer = params->Attributes.mWallHangMax;
+            this->mWallAnimTimer = max(0, params->Attributes.mWallHangMax - 400);
+
+            this->mAttributes.mGainHelmet = params->Attributes.mMarioHasHelmet;
+            this->mAttributes.mHasFludd = params->Attributes.mCanUseFludd;
+            this->mAttributes.mIsShineShirt = params->Attributes.mMarioHasShirt;
+        
+            this->mCustomInfo->_mFirstParamsDone = true;
+        }
+        
+        if (!this->mYoshi || this->mYoshi->mState != TYoshi::STATE::MOUNTED)
+        {
+            this->mSize.x *= sizeMulti;
+            this->mSize.y *= sizeMulti;
+            this->mSize.z *= sizeMulti;
+            this->mModelData->mModel->mSizeMultiplier.x *= sizeMulti;
+            this->mModelData->mModel->mSizeMultiplier.y *= sizeMulti;
+            this->mModelData->mModel->mSizeMultiplier.z *= sizeMulti;
+
+            this->mMaxHealth = params->Attributes.mHealth;
+            if (this->mHealth > this->mMaxHealth)
+            {
+                this->mHealth = this->mMaxHealth;
+            }
+            this->mOBStep = params->Attributes.mOBStep;
+            this->mOBMax = params->Attributes.mOBMax;
+            this->mWallHangTimer = params->Attributes.mWallHangMax;
+            this->mWallAnimTimer = max(0, params->Attributes.mWallHangMax - 400);
+
+            this->mGravity *= params->Attributes.mGravityMulti;
+            this->mCustomInfo->mTerminalVelocity *= params->Attributes.mGravityMulti;
+            this->mMaxFallNoDamage *= params->Attributes.mMaxFallNoDamageMulti * scalar;
+            this->mCustomInfo->mMaxJumps = params->Attributes.mJumpCount;
+
+            this->mWaterHealthDrainSpd /= params->Attributes.mWaterHealthMultiplier;
+            this->mWaterHealthScubaDrainSpd /= params->Attributes.mWaterHealthMultiplier;
+            this->mBaseBounceSpeed1 *= params->Attributes.mBaseBounce1Multi * scalar;
+            this->mBaseBounceSpeed2 *= params->Attributes.mBaseBounce2Multi * scalar;
+            this->mBaseBounceSpeed3 *= params->Attributes.mBaseBounce3Multi * scalar;
+            this->mOceanOfs *= this->mSize.y;
+            this->mWaterJumpHeightDifMax *= this->mSize.y;
+            this->mThrowPower *= params->Attributes.mThrowPowerMultiplier * scalar;
+
+            params->Attributes.mBaseJumpHeightMulti = baseParams->Attributes.mBaseJumpHeightMulti * scalar;
+            params->Attributes.mSpeedMultiplier = baseParams->Attributes.mSpeedMultiplier * scalar;
+        }
+    }
+}
