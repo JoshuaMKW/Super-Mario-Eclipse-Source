@@ -380,39 +380,7 @@ void initMario(TMario *gpMario, bool isMario)
 
     if (MarioParamsFile *baseParams = gpMario->mCustomInfo->_mBaseParams; baseParams)
     {
-        gpMario->mCustomInfo->mParams = (MarioParamsFile *)malloc(sizeof(MarioParamsFile), 32);
-        MarioParamsFile *params = gpMario->mCustomInfo->mParams;
-
-        memcpy(params, baseParams, sizeof(MarioParamsFile));
-
-        float sizeX = baseParams->Attributes.mSizeMultiplier;
-        float sizeScalar = (float)(baseParams->Attributes.mSizeMultiplier * 0.5) + (float)(1 - 0.5);
-
-        params->Attributes.mBaseBounce1Multi *= sizeScalar;
-        params->Attributes.mBaseBounce2Multi *= sizeScalar;
-        params->Attributes.mBaseBounce3Multi *= sizeScalar;
-        params->Attributes.mMaxFallNoDamageMulti *= sizeScalar;
-        params->Attributes.mBaseJumpHeightMulti *= sizeScalar;
-        params->Attributes.mSpeedMultiplier *= sizeScalar;
-        params->Attributes.mThrowPowerMultiplier *= sizeScalar;
-
         gpMario->setCustomAttributes();
-        
-        gpMario->mHealth = params->Attributes.mHealth;
-        gpMario->mMaxHealth = params->Attributes.mMaxHealth;
-        gpMario->mOBStep = params->Attributes.mOBStep;
-        gpMario->mOBMax = params->Attributes.mOBMax;
-        gpMario->mWallHangTimer = params->Attributes.mWallHangMax;
-        gpMario->mWallAnimTimer = max(0, params->Attributes.mWallHangMax);
-
-        gpMario->mAttributes.mGainHelmet = params->Attributes.mMarioHasHelmet;
-        gpMario->mAttributes.mHasFludd = params->Attributes.mCanUseFludd;
-        gpMario->mAttributes.mIsShineShirt = params->Attributes.mMarioHasShirt;
-
-        if (params->Attributes.mMarioHasGlasses)
-        {
-            wearGlass__6TMarioFv(gpMario);
-        }
     }
     initFludd(gpMario);
 }

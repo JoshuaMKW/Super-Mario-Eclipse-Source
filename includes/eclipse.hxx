@@ -1539,8 +1539,10 @@ public:
 
             float mMaxFallNoDamage;
             float mOceanOfs;
-            float mWaterJumpHeightDifMax; 
-            float _00[8];
+            float mWaterJumpHeightDifMax;
+            float mWaterHealthDrainSpd;
+            float mWaterHealthScubaDrainSpd;
+            float _00[5];
         } DefaultAttrs; //0x0024
 
         bool _mFirstParamsDone; //0x0068
@@ -1715,8 +1717,11 @@ public:
             if (!this->mCustomInfo->mParams)
             {
                 this->mCustomInfo->mParams = (MarioParamsFile *)malloc(sizeof(MarioParamsFile), 32);
+                memcpy(this->mCustomInfo->mParams, baseParams, sizeof(MarioParamsFile));
             }
             MarioParamsFile *params = this->mCustomInfo->mParams;
+            float sizeMulti = baseParams->Attributes.mSizeMultiplier;
+            float scalar = (float)(sizeMulti * 0.5) + (float)(1 - 0.5);
 
             if (this->mCustomInfo->_mFirstParamsDone)
             {
@@ -1724,34 +1729,62 @@ public:
                 this->mCustomInfo->mTerminalVelocity = -75 * this->mGravity;
                 this->mMaxFallNoDamage = this->mCustomInfo->DefaultAttrs.mMaxFallNoDamage;
                 this->mCustomInfo->mMaxJumps = 1;
-                this->mOceanOfs = this->mCustomInfo->DefaultAttrs.mOceanOfs;
-                this->mWaterJumpHeightDifMax = this->mCustomInfo->DefaultAttrs.mWaterJumpHeightDifMax;
-                this->mThrowPower = this->mCustomInfo->DefaultAttrs.mThrowPower;
-            
+
+                this->mWaterHealthDrainSpd = this->mCustomInfo->DefaultAttrs.mWaterHealthDrainSpd;
+                this->mWaterHealthScubaDrainSpd = this->mCustomInfo->DefaultAttrs.mWaterHealthScubaDrainSpd;
                 this->mBaseBounceSpeed1 = this->mCustomInfo->DefaultAttrs.mBaseBounce1;
                 this->mBaseBounceSpeed2 = this->mCustomInfo->DefaultAttrs.mBaseBounce2;
                 this->mBaseBounceSpeed3 = this->mCustomInfo->DefaultAttrs.mBaseBounce3;
+                this->mOceanOfs = this->mCustomInfo->DefaultAttrs.mOceanOfs;
+                this->mWaterJumpHeightDifMax = this->mCustomInfo->DefaultAttrs.mWaterJumpHeightDifMax;
+                this->mThrowPower = this->mCustomInfo->DefaultAttrs.mThrowPower;
 
                 this->mCustomInfo->mParams->Attributes.mSpeedMultiplier = 1;
                 this->mCustomInfo->mParams->Attributes.mBaseJumpHeightMulti = 1;
             }
             else
             {
+                params->Attributes.mBaseBounce1Multi *= scalar;
+                params->Attributes.mBaseBounce2Multi *= scalar;
+                params->Attributes.mBaseBounce3Multi *= scalar;
+                params->Attributes.mMaxFallNoDamageMulti *= scalar;
+                params->Attributes.mBaseJumpHeightMulti *= scalar;
+                params->Attributes.mSpeedMultiplier *= scalar;
+                params->Attributes.mThrowPowerMultiplier *= scalar;
+
+                if (params->Attributes.mMarioHasGlasses)
+                {
+                    wearGlass__6TMarioFv(this);
+                }
+
                 this->mCustomInfo->DefaultAttrs.mBaseBounce1 = this->mBaseBounceSpeed1;
-                this->mCustomInfo->DefaultAttrs.mBaseBounce1 = this->mBaseBounceSpeed2;
-                this->mCustomInfo->DefaultAttrs.mBaseBounce1 = this->mBaseBounceSpeed3;
+                this->mCustomInfo->DefaultAttrs.mBaseBounce2 = this->mBaseBounceSpeed2;
+                this->mCustomInfo->DefaultAttrs.mBaseBounce3 = this->mBaseBounceSpeed3;
                 this->mCustomInfo->DefaultAttrs.mGravity = this->mGravity;
                 this->mCustomInfo->DefaultAttrs.mMaxFallNoDamage = this->mMaxFallNoDamage;
                 this->mCustomInfo->DefaultAttrs.mOceanOfs = this->mOceanOfs;
                 this->mCustomInfo->DefaultAttrs.mThrowPower = this->mThrowPower;
                 this->mCustomInfo->DefaultAttrs.mWaterJumpHeightDifMax = this->mWaterJumpHeightDifMax;
+                this->mCustomInfo->DefaultAttrs.mWaterHealthDrainSpd = this->mWaterHealthDrainSpd;
+                this->mCustomInfo->DefaultAttrs.mWaterHealthScubaDrainSpd = this->mWaterHealthScubaDrainSpd;
 
-                this->mSize.x *= baseParams->Attributes.mSizeMultiplier;
-                this->mSize.y *= baseParams->Attributes.mSizeMultiplier;
-                this->mSize.z *= baseParams->Attributes.mSizeMultiplier;
-                this->mModelData->mModel->mSizeMultiplier.x *= baseParams->Attributes.mSizeMultiplier;
-                this->mModelData->mModel->mSizeMultiplier.y *= baseParams->Attributes.mSizeMultiplier;
-                this->mModelData->mModel->mSizeMultiplier.z *= baseParams->Attributes.mSizeMultiplier;
+                this->mSize.x *= sizeMulti;
+                this->mSize.y *= sizeMulti;
+                this->mSize.z *= sizeMulti;
+                this->mModelData->mModel->mSizeMultiplier.x *= sizeMulti;
+                this->mModelData->mModel->mSizeMultiplier.y *= sizeMulti;
+                this->mModelData->mModel->mSizeMultiplier.z *= sizeMulti;
+
+                this->mHealth = params->Attributes.mHealth;
+                this->mMaxHealth = params->Attributes.mMaxHealth;
+                this->mOBStep = params->Attributes.mOBStep;
+                this->mOBMax = params->Attributes.mOBMax;
+                this->mWallHangTimer = params->Attributes.mWallHangMax;
+                this->mWallAnimTimer = max(0, params->Attributes.mWallHangMax);
+
+                this->mAttributes.mGainHelmet = params->Attributes.mMarioHasHelmet;
+                this->mAttributes.mHasFludd = params->Attributes.mCanUseFludd;
+                this->mAttributes.mIsShineShirt = params->Attributes.mMarioHasShirt;
             
                 this->mCustomInfo->_mFirstParamsDone = true;
             }
@@ -1759,20 +1792,23 @@ public:
             if (!this->mYoshi || this->mYoshi->mState != TYoshi::STATE::MOUNTED)
             {
                 this->mGravity *= params->Attributes.mGravityMulti;
-                this->mCustomInfo->mTerminalVelocity = -75 * params->Attributes.mGravityMulti;
+                this->mCustomInfo->mTerminalVelocity *= params->Attributes.mGravityMulti;
                 this->mMaxFallNoDamage *= params->Attributes.mMaxFallNoDamageMulti;
                 this->mCustomInfo->mMaxJumps = params->Attributes.mJumpCount;
-
-                this->mOceanOfs *= baseParams->Attributes.mSizeMultiplier;
-                this->mWaterJumpHeightDifMax *= baseParams->Attributes.mSizeMultiplier;
 
                 this->mWaterHealthDrainSpd /= params->Attributes.mWaterHealthMultiplier;
                 this->mWaterHealthScubaDrainSpd /= params->Attributes.mWaterHealthMultiplier;
                 this->mBaseBounceSpeed1 *= params->Attributes.mBaseBounce1Multi;
                 this->mBaseBounceSpeed2 *= params->Attributes.mBaseBounce2Multi;
                 this->mBaseBounceSpeed3 *= params->Attributes.mBaseBounce3Multi;
+                this->mOceanOfs *= scalar;
+                this->mWaterJumpHeightDifMax *= scalar;
                 this->mThrowPower *= params->Attributes.mThrowPowerMultiplier;
+
+                params->Attributes.mBaseJumpHeightMulti = baseParams->Attributes.mBaseJumpHeightMulti * scalar;
+                params->Attributes.mSpeedMultiplier = baseParams->Attributes.mSpeedMultiplier * scalar;
             }
+            //TODO: SET THE HALFWORD ATTRS AT RUNTIME, SUCH AS HEALTH, AND TIMERS
         }
     }
 };
