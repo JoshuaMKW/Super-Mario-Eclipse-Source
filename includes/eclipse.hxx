@@ -1297,7 +1297,6 @@ public:
             float mMaxFallNoDamage;
             float mThrowPower;
 
-            float mMaxFallNoDamage;
             float mOceanOfs;
             float mWaterJumpHeightDifMax;
             float mWaterHealthDrainSpd;
@@ -1305,9 +1304,9 @@ public:
             float _00[5];
         } DefaultAttrs; //0x0024
 
-        bool _mFirstParamsDone; //0x0068
-        u8 _00;             //0x0069
-        u16 _01;            //0x006A
+        bool _mFirstParamsDone; //0x0060
+        u8 _00;             //0x0061
+        u16 _01;            //0x0062
     };
 
     /*
