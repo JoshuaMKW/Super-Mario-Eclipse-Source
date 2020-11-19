@@ -2101,6 +2101,8 @@ RGBA<u8> yoshiColor;
 
 void TMario::setCustomAttributes()
 {
+    TMario__setAttributes(this);
+    /*
     if (MarioParamsFile *baseParams = this->mCustomInfo->_mBaseParams; baseParams)
     {
         if (!this->mCustomInfo->mParams)
@@ -2208,4 +2210,5 @@ void TMario::setCustomAttributes()
             params->Attributes.mSpeedMultiplier = baseParams->Attributes.mSpeedMultiplier * scalar;
         }
     }
+    */
 }

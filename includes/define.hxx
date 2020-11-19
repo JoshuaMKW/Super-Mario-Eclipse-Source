@@ -9,6 +9,7 @@
 #define free(pointer) __dl__FPv(pointer)
 #define angleToRadians ((float (*)(float angle))0x80003400)
 #define radiansToAngle ((float (*)(float angle))0x8000341C)
+#define TMario__setAttributes ((void (*)(TMario *gpMario))0x800050D4)
 #define sqrtf(input) powf(input, 0.5)
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #define min(a, b) (((a) < (b)) ? (a) : (b))
