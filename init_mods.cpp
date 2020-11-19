@@ -378,7 +378,7 @@ void initMario(TMario *gpMario, bool isMario)
     gpMario->mCustomInfo->_mBaseParams = (MarioParamsFile *)getResource__10JKRArchiveFPCc(getVolume__13JKRFileLoaderFPCc(0x804165A0), //mario
                                                                                           0x800049F5);                                ///params.bin
 
-    if (MarioParamsFile *baseParams = gpMario->mCustomInfo->_mBaseParams; baseParams)
+    if (gpMario->mCustomInfo->_mBaseParams)
     {
         gpMario->setCustomAttributes();
     }
