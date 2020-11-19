@@ -1267,7 +1267,7 @@ public:
             bool mIsSpinBounce : 1;
             bool mIsDisableInput : 1;
             u16 _00 : 12;
-        } CollisionFlags; //0x0008
+        } /*__attribute__((packed))*/ CollisionFlags; //0x0008
 
         u16 mPrevCollision;  //0x000A
         s32 mCollisionTimer; //0x000C
@@ -1283,7 +1283,7 @@ public:
             s32 mWaterLevel;                     //0x0016
             bool mHadFludd;                      //0x001A
             u8 _00;                              //0x001B
-        } FluddHistory;                          //0x0014
+        } /*__attribute__((packed))*/ FluddHistory;                          //0x0014
 
         float mSizeContext;            //0x001C
         MarioParamsFile *_mBaseParams; //0x0020
@@ -1906,18 +1906,12 @@ public:
         }
     }
 
-    static JGeometry::TVec3<float> getNormal(JGeometry::TVec3<float> a, JGeometry::TVec3<float> b, JGeometry::TVec3<float> c, bool invert)
+    static JGeometry::TVec3<float> getNormal(JGeometry::TVec3<float> a, JGeometry::TVec3<float> b, JGeometry::TVec3<float> c)
     {
         JGeometry::TVec3<float> vectorA = {b.x - a.x, b.y - a.y, b.z - a.z};
         JGeometry::TVec3<float> vectorB = {c.x - a.x, c.y - a.y, c.z - a.z};
 
         JGeometry::TVec3<float> normal = normalize(cross(vectorA, vectorB));
-        if (invert)
-        {
-            normal.x *= -1;
-            normal.y *= -1;
-            normal.z *= -1;
-        }
         return normal;
     }
 };
