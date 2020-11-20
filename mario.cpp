@@ -120,14 +120,13 @@ void rescaleHeldObj(float *holderMatrix, float *destMatrix, TMapObjBase *mHeldOb
     asm ("mr 5, 31");
     PSMTXCopy(holderMatrix, destMatrix);
 
-    PSMTXScaleApply(destMatrix, 1 / mHeldObj->mHolder->mSize.x);
+    PSMTXScaleApply(destMatrix, destMatrix, 1 / mHeldObj->mHolder->mSize.x);
 }
 
 //0x8024D538
 void rescaleHeldObj(TMario *gpMario)
 {
-    getTakingMtx__6TMarioFv(gpMario);
-    PSMTXScaleApply(destMatrix, 1 / gpMario->mSize.x);
+    PSMTXScaleApply(getTakingMtx__6TMarioFv(gpMario), getTakingMtx__6TMarioFv(gpMario), 1 / gpMario->mSize.x);
     animSound__6TMarioFv(gpMario);
 }
 
