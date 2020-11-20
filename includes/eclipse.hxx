@@ -1388,85 +1388,89 @@ public:
     u32 _09[0x8 / 4];                //0x0124
     float mWaterHealth;              //0x012C
     float mMaxWaterHealth;           //0x0130
-    u32 _09a[0x28 / 4];              //0x0134
+    u32 _10[0x28 / 4];               //0x0134
     float mCollisionXZSize;          //0x015C
-    u32 _09b[0x138 / 4];             //0x0160
+    u32 _11[0x138 / 4];              //0x0160
     u32 mInitialWater;               //0x0298
-    u32 _10[0x10 / 4];               //0x029C
+    u32 _12[0x10 / 4];               //0x029C
     float mLastGroundedHeight;       //0x02AC
-    u32 _11[0x8 / 4];                //0x02B0
-    u16 _12;                         //0x02B8
+    u32 _13[0x8 / 4];                //0x02B0
+    u16 _14;                         //0x02B8
     u16 mOBTimer;                    //0x02BA
-    u32 _13[0xC8 / 4];               //0x02BC
+    u32 _15[0xC8 / 4];               //0x02BC
     TTakeActor *mGrabTarget;         //0x0384
-    u32 _14[0xC / 4];                //0x0388
+    u32 _16[0xC / 4];                //0x0388
     J3DDrawBuffer *mDrawBufferA;     //0x0394
     J3DDrawBuffer *mDrawBufferB;     //0x0398
-    u32 _14a[0xC / 4];               //0x039C
+    u32 _17[0xC / 4];                //0x039C
     M3UModelMario *mModelData;       //0x03A8
-    u32 _14b[0x18 / 4];              //0x03AC
+    u32 _18[0x18 / 4];               //0x03AC
     u8 mBindBoneIDArray[12];         //0x03C4
-    u32 _14c[0x10 / 4];              //0x03D0
+    u32 _19[0x10 / 4];               //0x03D0
     TMarioCap *mCap;                 //0x03E0
     TWaterGun *mFludd;               //0x03E4
-    u32 _15[0x8 / 4];                //0x03E8
+    u32 _20[0x8 / 4];                //0x03E8
     TYoshi *mYoshi;                  //0x03F0
     CustomInfo *mCustomInfo;         //0x03F4
-    u32 _16[0x104 / 4];              //0x03F8
+    u32 _21[0x104 / 4];              //0x03F8
     TMarioGamePad *mController;      //0x04FC
-    u32 _17[0x8C / 4];               //0x0500
+    u32 _22[0x8C / 4];               //0x0500
     u16 mMaxHealth;                  //0x058C
-    u16 _18;                         //0x058E
-    u32 _19[0x10 / 4];               //0x0590
+    u16 _23;                         //0x058E
+    u32 _24[0x10 / 4];               //0x0590
     float mMaxGroundSpeed;           //0x05A0
-    u32 _19a[0x22C / 4];             //0x05A4
+    u32 _25[0x22C / 4];              //0x05A4
     float mBaseBounceSpeed1;         //0x07D0
-    u32 _20[0x10 / 4];               //0x07D4
+    u32 _26[0x10 / 4];               //0x07D4
     float mBaseBounceSpeed2;         //0x07E4
-    u32 _21[0x10 / 4];               //0x07E8
+    u32 _27[0x10 / 4];               //0x07E8
     float mBaseBounceSpeed3;         //0x07F8
-    u32 _22[0x24 / 4];               //0x07FC
+    u32 _28[0x24 / 4];               //0x07FC
     float mThrowPower;               //0x0820
-    u32 _23[0x9C / 4];               //0x0824
+    u32 _29[0x9C / 4];               //0x0824
     float mMaxFallNoDamage;          //0x08C0
-    u32 _23a[0xC4 / 4];              //0x08C4
+    u32 _30[0xC4 / 4];               //0x08C4
     u16 mOBStep;                     //0x0988
-    u16 _24;                         //0x098A
-    u32 _25[0x10 / 4];               //0x098C
+    u16 _31;                         //0x098A
+    u32 _32[0x10 / 4];               //0x098C
     u16 mOBMax;                      //0x099C
-    u16 _26;                         //0x099E
-    u32 _27[0x178 / 4];              //0x09A0
+    u16 _33;                         //0x099E
+    u32 _34[0x178 / 4];              //0x09A0
     float mGravity;                  //0x0B18
-    u32 _28[0x38 / 4];               //0x0B1C
+    u32 _35[0x38 / 4];               //0x0B1C
     float mAirborneHSpeedMul;        //0x0B54
-    u32 _29[0x10 / 4];               //0x0B58
+    u32 _36[0x10 / 4];               //0x0B58
     float mDefaultAccelerationMul;   //0x0B68
-    u32 _30[0x24 / 4];               //0x0B6C
+    u32 _37[0x24 / 4];               //0x0B6C
     float mSideFlipStrength;         //0x0B90
-    u32 _30a[0x5AC / 4];             //0x0B94
+    u32 _38[0xEC / 4];               //0x0B94
+    float mHipDropSpeedSlow;         //0x0C80
+    u32 _39[0x10 / 4];               //0x0C84
+    float mHipDropSpeedFast;         //0x0C94
+    u32 _40[0x4A8 / 4];              //0x0C98
     float mWaterJumpHeightDifMax;    //0x1140
-    u32 _30aa[0x24 / 4];             //0x1144
+    u32 _41[0x24 / 4];               //0x1144
     float mOceanOfs;                 //0x1168
-    u32 _30b[0x100 / 4];             //0x116C
+    u32 _42[0x100 / 4];              //0x116C
     float mWaterHealthDrainSpd;      //0x126C
-    u32 _31[0x10 / 4];               //0x1270
+    u32 _43[0x10 / 4];               //0x1270
     float mWaterHealthScubaDrainSpd; //0x1280
-    u32 _32[0x10 / 4];               //0x1284
+    u32 _44[0x10 / 4];               //0x1284
     float mWaterHealthIncreaseSpd;   //0x1294
-    u32 _32a[0x40 / 4];              //0x1298
+    u32 _45[0x40 / 4];               //0x1298
     s16 mWallAnimTimer;              //0x12D8
-    u16 _32b;                        //0x12DA
-    u32 _32c[0x10 / 4];              //0x12DC
+    u16 _46;                         //0x12DA
+    u32 _47[0x10 / 4];               //0x12DC
     s16 mWallHangTimer;              //0x12EC
-    u32 _33[0x124 / 4];              //0x12F0
+    u32 _48[0x124 / 4];              //0x12F0
     float mTRopeAirborneAccelMul;    //0x1414
-    u32 _34[0xE04 / 4];              //0x1418
+    u32 _49[0xE04 / 4];              //0x1418
     float mVSpeedYoshiMul;           //0x221C
-    u32 _35[0x4C / 4];               //0x2220
+    u32 _50[0x4C / 4];               //0x2220
     float mFSpeedFlutterMul;         //0x226C
-    u32 _36[0x10 / 4];               //0x2270
+    u32 _51[0x10 / 4];               //0x2270
     float mBSpeedFlutterMul;         //0x2280
-    u32 _37[0x200C / 4];             //0x2284
+    u32 _52[0x200C / 4];             //0x2284
     float mAllSpeedMultiplier;       //0x4290
 
     void setCustomAttributes();
